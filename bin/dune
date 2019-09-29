@@ -1,5 +1,5 @@
 (executables
-(names scaffold)
-(libraries compiler-libs.common)
+(names ocoi)
+(libraries core compiler-libs.common)
 (preprocess (pps ppx_jane))
 )

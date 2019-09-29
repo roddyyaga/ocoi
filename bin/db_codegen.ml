@@ -1,11 +1,6 @@
 open Asttypes
 open Parsetree
-
-let name = "user"
-
-let tree =
-  Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc"
-    (name ^ ".ml")
+open Core
 
 (** Return whether an AST node is of the form `type t = {...}`. *)
 let is_valid_t_node {pstr_desc = desc; _} =
@@ -21,7 +16,7 @@ let is_valid_t_node {pstr_desc = desc; _} =
 
 (** Find a unique node of the form `type t = {...}` in an AST tree and return its labels. *)
 let get_t_node_labels_ast tree =
-  match List.filter is_valid_t_node tree with
+  match List.filter tree ~f:is_valid_t_node with
   | [ { pstr_desc = Pstr_type (_, [{ptype_kind = Ptype_record label_decls; _}]);
         _ } ] ->
       label_decls
@@ -35,8 +30,10 @@ type resource_attribute =
   {name: string; type_name: string; sql_name: string; sql_type_name: string}
 (** Specifies how a resource attribute is represented in OCaml source code and SQL. *)
 
-(* TODO - work out which types should be generated *)
+(* TODO - work out which postgres types would be best to generate *)
 (* TODO - generate types without NOT NULL for options *)
+(* TODO - generate types for enums *)
+(* TODO - generate types for foreign keys *)
 let ocaml_type_name_to_sql name type_name =
   let base_sql_type =
     match name with
@@ -66,30 +63,33 @@ let make_resource_attribute (name, type_name) =
  * (note the lack of parentheses). *)
 let column_tuple_string resource_attributes =
   let joined_names =
-    String.concat ", " (List.map (fun a -> a.sql_name) resource_attributes)
+    String.concat ~sep:", "
+      (List.map resource_attributes ~f:(fun a -> a.sql_name))
   in
   joined_names
 
 (** Given a list of resource attibutes, return a string "record_name1, record_name2, ..."
    * or "record_name1; record_name2; ...". *)
 let record_names_string resource_attributes sep =
-  String.concat sep (List.map (fun a -> a.name) resource_attributes)
+  String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.name))
 
 (** Given a list of resource attributes, return a string "(tup[n] type1 type2 ...)". *)
 let caqti_tuple_type_string resource_attributes =
-  let joined_types =
-    String.concat " " (List.map (fun a -> a.type_name) resource_attributes)
-  in
   let length = List.length resource_attributes in
-  if length <= 4 then Printf.sprintf "(tup%d %s)" length joined_types
-  else
-    (* TODO - generate "tup[n]" for n > 4 *)
-    failwith
-      "SQL generation not supported for objects with more than 4 attributes..."
+  let sep, inital_string =
+    match length <= 4 with
+    | true -> (" ", Printf.sprintf "tup%d" length)
+    | false -> (" & ", "let (&) = tup2 in")
+  in
+  let joined_types =
+    String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.type_name))
+  in
+  Printf.sprintf "(%s %s)" inital_string joined_types
 
 (** Given a list of resource attibutes, return a string "~record_name1 ~record_name2 ...". *)
 let parameters_string resource_attributes =
-  String.concat " " (List.map (fun a -> "~" ^ a.name) resource_attributes)
+  String.concat ~sep:" "
+    (List.map resource_attributes ~f:(fun a -> "~" ^ a.name))
 
 (** Produce a resource_attribute from a relevant bit of AST. *)
 let process_label_decl ({pld_name; pld_type; _} : label_declaration) =
@@ -105,22 +105,23 @@ let process_label_decl ({pld_name; pld_type; _} : label_declaration) =
 
 (** Extract resource_attributes from label declarations AST. *)
 let get_resource_attributes (label_decls : label_declaration list) =
-  List.map process_label_decl label_decls
+  List.map label_decls ~f:process_label_decl
 
 (** Filter the resource_attribute representing ID from a list. *)
 let without_id resource_attributes =
-  List.filter (fun a -> a.name <> "id") resource_attributes
+  List.filter resource_attributes ~f:(fun a -> a.name <> "id")
 
 (** Get the resource_attribute respresenting ID from a list. *)
 let get_id_attribute resource_attributes =
-  List.find (fun a -> a.name = "id") resource_attributes
+  List.find_exn resource_attributes ~f:(fun a -> a.name = "id")
 
 (** Generate the code to create the table for a resource. *)
 let generate_create_table_sql table_name resource_attributes =
   let column_definitions =
-    List.map (fun a -> a.sql_name ^ " " ^ a.sql_type_name) resource_attributes
+    List.map resource_attributes ~f:(fun a ->
+        a.sql_name ^ " " ^ a.sql_type_name)
   in
-  let body = String.concat ",\n" column_definitions in
+  let body = String.concat ~sep:",\n" column_definitions in
   Printf.sprintf {sql|CREATE TABLE %s (
          %s
          )
@@ -146,7 +147,8 @@ let rollback (module Db : Caqti_lwt.CONNECTION) = Db.exec rollback_query ()|ocam
 (** Generate model code for getting all instances of a resource. *)
 let make_all_code table_name resource_attributes =
   Printf.sprintf
-    {ocaml|Caqti_request.collect Caqti_type.unit
+    {ocaml|let all_query =
+  Caqti_request.collect Caqti_type.unit
     Caqti_type.%s
     {sql| SELECT %s FROM %s |sql}
 
@@ -203,8 +205,8 @@ let create (module Db : Caqti_lwt.CONNECTION) %s =
     (caqti_tuple_type_string (without_id resource_attributes))
     table_name
     (column_tuple_string (without_id resource_attributes))
-    (String.concat ", "
-       (List.map (fun _ -> "?") (without_id resource_attributes)))
+    (String.concat ~sep:", "
+       (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
     (parameters_string (without_id resource_attributes))
     (record_names_string (without_id resource_attributes) ", ")
 
@@ -219,16 +221,16 @@ let make_update_code table_name resource_attributes =
        WHERE id = (?)
     |}
 
-let update (module Db : Caqti_lwt.CONNECTION) id %s =
+let update (module Db : Caqti_lwt.CONNECTION) {%s} =
     Db.exec update_query (%s, id)|ocaml}
     (caqti_tuple_type_string
        (without_id resource_attributes @ [get_id_attribute resource_attributes]))
     table_name
     (column_tuple_string (without_id resource_attributes))
-    (String.concat ", "
-       (List.map (fun _ -> "?") (without_id resource_attributes)))
-    (parameters_string (without_id resource_attributes))
-    (record_names_string resource_attributes ", ")
+    (String.concat ~sep:", "
+       (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
+    (record_names_string resource_attributes "; ")
+    (record_names_string (without_id resource_attributes) ", ")
 
 (** Generate model code for destroying a resource instance. *)
 let make_destroy_code table_name =
@@ -240,26 +242,34 @@ let make_destroy_code table_name =
 let destroy (module Db : Caqti_lwt.CONNECTION) id = Db.exec destroy_query id|ocaml}
     table_name
 
-let () =
-  let oc = open_out "migration_queries.ml" in
+let write_migration_queries name tree =
+  let chopped_name = Filename.chop_extension name in
+  let oc = Out_channel.create (chopped_name ^ "_migration_queries.ml") in
+  let module_name = Filename.basename chopped_name in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
-  Printf.fprintf oc "%s\n" (make_migration_code name resource_attributes) ;
-  close_out oc
+  Printf.fprintf oc "%s\n"
+    (make_migration_code module_name resource_attributes) ;
+  Out_channel.close oc
 
-let () =
-  let oc = open_out "queries.ml" in
+let write_crud_queries name tree =
+  let chopped_name = Filename.chop_extension name in
+  let oc = Out_channel.create (chopped_name ^ "_queries.ml") in
+  let module_name = Filename.basename chopped_name in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
   let queries =
-    [ make_all_code name resource_attributes;
-      make_show_code name resource_attributes;
-      make_create_code name resource_attributes;
-      make_update_code name resource_attributes;
-      make_destroy_code name ]
+    [ make_all_code module_name resource_attributes;
+      make_show_code module_name resource_attributes;
+      make_create_code module_name resource_attributes;
+      make_update_code module_name resource_attributes;
+      make_destroy_code module_name ]
   in
-  let queries_string = String.concat "\n\n" queries in
+  let module_open_statement = "open " ^ String.capitalize module_name in
+  let queries_string =
+    String.concat ~sep:"\n\n" (module_open_statement :: queries)
+  in
   Printf.fprintf oc "%s\n" queries_string ;
-  close_out oc
+  Out_channel.close oc
