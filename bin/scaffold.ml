@@ -1,7 +1,7 @@
 open Asttypes
 open Parsetree
 
-let name = "test"
+let name = "user"
 
 let tree =
   Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc"

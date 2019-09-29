@@ -1,3 +1,19 @@
+# OCaml On Ice
+
+OCaml On Ice is a planned web framework in the style of Ruby on Rails or Django, but in OCaml. Initially it will be a
+wrapper around [Opium](https://github.com/rgrinberg/opium) plus some code generation tools.
+
+## Features
+### SQL generation
+Given a type definition for some model, for instance:
+
+```ocaml
+type t = {id: int; username: string; email: string; coolness_rating: int}
+```
+
+you can use the scaffold script to generate code to perform CRUD operations on the database:
+
+```ocaml
 Caqti_request.collect Caqti_type.unit
     Caqti_type.(tup4 int string string int)
     {sql| SELECT id, username, email, coolness_rating FROM user |sql}
@@ -53,3 +69,4 @@ let destroy_query =
     {sql| DELETE FROM user WHERE id = (?) |sql}
 
 let destroy (module Db : Caqti_lwt.CONNECTION) id = Db.exec destroy_query id
+```
