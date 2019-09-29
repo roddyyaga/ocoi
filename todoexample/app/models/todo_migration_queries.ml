@@ -1,6 +1,6 @@
 let migrate_query =
   Caqti_request.exec Caqti_type.unit
-   {|CREATE TABLE todo (
+    {|CREATE TABLE todo (
          id SERIAL PRIMARY KEY NOT NULL,
 title VARCHAR NOT NULL,
 completed BOOLEAN NOT NULL

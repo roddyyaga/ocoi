@@ -1,3 +1,5 @@
 (executable
 (name main)
-(libraries models controllers))
+(libraries models controllers
+           opium)
+(preprocess (pps lwt_ppx)))

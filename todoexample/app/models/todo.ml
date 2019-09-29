@@ -1,1 +1,1 @@
-type t = {id: int; title: string; completed: bool}
+type t = {id: int; title: string; completed: bool} [@@deriving yojson]

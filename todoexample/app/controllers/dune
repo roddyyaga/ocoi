@@ -1,2 +1,5 @@
 (library
-(name controllers))
+(name controllers)
+(libraries lwt lwt.unix
+           models db)
+(preprocess (pps lwt_ppx)))

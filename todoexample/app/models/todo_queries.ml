@@ -7,8 +7,7 @@ let all_query =
 
 let all (module Db : Caqti_lwt.CONNECTION) =
   Db.fold all_query
-    (fun (id, title, completed) acc ->
-      {id; title; completed} :: acc)
+    (fun (id, title, completed) acc -> {id; title; completed} :: acc)
     () []
 
 let show_query =
@@ -38,7 +37,7 @@ let create_query =
     {sql| INSERT INTO todo (title, completed) VALUES (?, ?) RETURNING id |sql}
 
 let create (module Db : Caqti_lwt.CONNECTION) ~title ~completed =
-    Db.find create_query (title, completed)
+  Db.find create_query (title, completed)
 
 let update_query =
   Caqti_request.exec
@@ -49,10 +48,9 @@ let update_query =
     |}
 
 let update (module Db : Caqti_lwt.CONNECTION) {id; title; completed} =
-    Db.exec update_query (title, completed, id)
+  Db.exec update_query (title, completed, id)
 
 let destroy_query =
-  Caqti_request.exec Caqti_type.int
-    {sql| DELETE FROM todo WHERE id = (?) |sql}
+  Caqti_request.exec Caqti_type.int {sql| DELETE FROM todo WHERE id = (?) |sql}
 
 let destroy (module Db : Caqti_lwt.CONNECTION) id = Db.exec destroy_query id
