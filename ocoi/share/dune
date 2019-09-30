@@ -1,5 +1,5 @@
 (install
-(files project_template project_template/app project_template/app/controllers)
+(files test.txt)
 (section share)
 (package ocoi)
 )

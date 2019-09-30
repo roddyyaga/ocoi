@@ -1,7 +1,8 @@
 open Models
 open Todo
 
-let example_todo = {id = 1; title = "Do some example thing"; completed = false}
+let example_todo =
+  {id = 1; title = "Do some example thing 7"; completed = false}
 
 let index () = Todo_queries.all Db.connection
 
