@@ -1,3 +1,4 @@
+(* TODO - extract response logic into code generation/controller/functor thing *)
 open Core
 open Opium.Std
 open Controllers
@@ -23,15 +24,22 @@ let index_todo =
       let todos_json = List.map todos ~f:Models.Todo.to_yojson in
       `Json (`List todos_json) |> respond')
 
+let empty_response code = `String "" |> respond' ~code
+
+let empty_created_response location =
+  `String ""
+  |> respond'
+       ~headers:(Cohttp.Header.of_list [("Location", location)])
+       ~code:`Created
+
+let respond_bad_request_400 err = `String err |> respond' ~code:`Bad_request
+
 let show_todo =
   get "/todos/:id" (fun req ->
       let%lwt todo_opt = Todo.show (int_of_string (param req "id")) in
-      let content, code =
-        match todo_opt with
-        | Some todo -> (`Json (todo |> Models.Todo.to_yojson), `OK)
-        | None -> (`String "", `Not_found)
-      in
-      content |> respond' ~code)
+      match todo_opt with
+      | Some todo -> `Json (todo |> Models.Todo.to_yojson) |> respond'
+      | None -> empty_response `Not_found)
 
 let create_todo =
   post "/todos" (fun req ->
@@ -40,12 +48,7 @@ let create_todo =
       let title = json |> member "title" |> to_string in
       let completed = json |> member "completed" |> to_bool in
       let%lwt id = Todo.create ~title ~completed in
-      `String ""
-      |> respond'
-           ~headers:
-             (Cohttp.Header.of_list
-                [("Location", Printf.sprintf "/todos/%d" id)])
-           ~code:`Created)
+      empty_created_response (Printf.sprintf "/todos/%d" id))
 
 let update_todo =
   put "/todos" (fun req ->
@@ -54,16 +57,15 @@ let update_todo =
       match todo_err with
       | Ok todo ->
           let%lwt () = Todo.update todo in
-          `String "" |> respond' ~code:`No_content
+          empty_response `No_content
       (* TODO - make error message nicer *)
       | Error err ->
-          `String ("(At least one) bad field: " ^ err)
-          |> respond' ~code:`Bad_request)
+          respond_bad_request_400 ("(At least one) bad field: " ^ err))
 
 let destroy_todo =
   delete "/todos/:id" (fun req ->
       let%lwt () = Todo.destroy (int_of_string (param req "id")) in
-      `String "" |> respond' ~code:`No_content)
+      empty_response `No_content)
 
 let _ =
   App.empty |> show_todo |> create_todo |> do_todo_migration
