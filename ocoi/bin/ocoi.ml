@@ -16,7 +16,13 @@ let generate =
   Command.group ~summary:"Generate various kinds of code"
     [("model", generate_model)]
 
+let new_ =
+  (* TODO - implement this *)
+  Command.basic ~summary:"Create an empty project (not yet implemented)"
+    (Command.Param.return (fun () -> ()))
+
 let command =
-  Command.group ~summary:"Run OCOI commands" [("generate", generate)]
+  Command.group ~summary:"Run OCOI commands"
+    [("generate", generate); ("new", new_)]
 
 let () = Command.run command
