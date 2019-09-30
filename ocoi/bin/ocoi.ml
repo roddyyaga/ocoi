@@ -31,17 +31,23 @@ let new_ =
         print_endline template_directory_name)
 
 let start_server () =
-  Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"]
+  let result =
+    Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"]
+  in
+  result
 
-let kill pid =
-  let status = Sys.command (Printf.sprintf "kill %d" pid) in
+let kill process =
+  let pid = process.Unix.Process_info.pid in
+  let status = Sys.command (Printf.sprintf "kill %d" (Pid.to_int pid)) in
+  let _ = Unix.waitpid pid in
   match status with
   | 0 -> ()
-  | _ -> failwith (Printf.sprintf "Could not kill process with pid %d" pid)
+  | _ ->
+      failwith
+        (Printf.sprintf "Could not kill process with pid %d" (Pid.to_int pid))
 
 let restart_server server =
-  let () = kill (Pid.to_int server.Unix.Process_info.pid) in
-  print_endline "Server recompiled and restarted!" ;
+  let () = kill server in
   start_server ()
 
 let rec restart_on_change server fswatch_output =
@@ -57,15 +63,18 @@ let server =
     ~readme:(fun () ->
       "This should be called from the app directory. It uses `main.ml` as an \
        entry point. It is implemented by rerunning `dune exec -- ./main.exe` \
-       when fswatch detects changes.")
+       when inotifywait detects changes.")
     (Command.Param.return (fun () ->
+         let () = print_endline "Starting server." in
          let server = start_server () in
          let watch_command =
-           {|fswatch -xr --event Created --event Updated --event Removed \
-            --event Renamed --event OwnerModified --event AttributeModified \
-            --event MovedFrom --event MovedTo -e ".*_build/.*" .|}
+           (* TODO - optimise inotifywait command (e.g. limit to certain file types) *)
+           "inotifywait -mr -e modify -e attrib -e close_write -e moved_to -e \
+            moved_from -e create -e delete -e delete_self @./_build/ ."
          in
          let fswatch_output = Unix.open_process_in watch_command in
+         (* TODO - limit frequency of server restarts *)
+         (* TODO - ensure spawned processes are nicely cleaned up when killed *)
          restart_on_change server fswatch_output))
 
 let command =
