@@ -1,20 +1,21 @@
-open Db
 open Models
 open Todo
 
 let example_todo = {id = 1; title = "Do some example thing"; completed = false}
 
-let index () =
-  let results = Todo_queries.all Connection.db_connection in
-  match%lwt results with
-  | Ok (r :: _) -> r |> Lwt.return
-  | Error _ -> failwith "index error"
-  | _ -> failwith "No results or something"
+let index () = Todo_queries.all Db.connection
 
-let show id = Todo_queries.show Connection.db_connection id
+let show id = Todo_queries.show Db.connection id
+
+let create ~title ~completed =
+  Todo_queries.create Db.connection ~title ~completed
+
+let update {id; title; completed} =
+  Todo_queries.update Db.connection {id; title; completed}
+
+let destroy id = Todo_queries.destroy Db.connection id
 
 let create_example () =
-  Todo_queries.create Connection.db_connection ~title:"DB example"
-    ~completed:false
+  Todo_queries.create Db.connection ~title:"DB example" ~completed:false
 
-let do_migration () = Todo_migration_queries.migrate Connection.db_connection
+let do_migration () = Todo_migration_queries.migrate Db.connection

@@ -1,5 +1,7 @@
 (executables
 (names ocoi)
-(libraries core compiler-libs.common)
+(public_names ocoi)
+(libraries core compiler-libs.common fileutils)
 (preprocess (pps ppx_jane))
+(package ocoi)
 )

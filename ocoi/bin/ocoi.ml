@@ -17,9 +17,18 @@ let generate =
     [("model", generate_model)]
 
 let new_ =
-  (* TODO - implement this *)
   Command.basic ~summary:"Create an empty project (not yet implemented)"
-    (Command.Param.return (fun () -> ()))
+    Command.Let_syntax.(
+      let%map_open name = anon ("name" %: Filename.arg_type) in
+      (* TODO - sanitise name *)
+      fun () ->
+        let template_directory_name =
+          FilePath.concat
+            (FilePath.dirname Sys.argv.(0))
+            "../share/project_template"
+        in
+        let () = FileUtil.cp ~recurse:true [template_directory_name] name in
+        print_endline template_directory_name)
 
 let command =
   Command.group ~summary:"Run OCOI commands"

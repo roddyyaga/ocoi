@@ -1,5 +1,5 @@
 (executable
 (name main)
 (libraries models controllers
-           opium)
+           opium yojson)
 (preprocess (pps lwt_ppx)))

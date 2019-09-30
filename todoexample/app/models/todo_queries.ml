@@ -6,9 +6,14 @@ let all_query =
     {sql| SELECT id, title, completed FROM todo |sql}
 
 let all (module Db : Caqti_lwt.CONNECTION) =
-  Db.fold all_query
-    (fun (id, title, completed) acc -> {id; title; completed} :: acc)
-    () []
+  let result =
+    Db.fold all_query
+      (fun (id, title, completed) acc -> {id; title; completed} :: acc)
+      () []
+  in
+  match%lwt result with
+  | Ok data -> data |> Lwt.return
+  | Error _ -> failwith "Error in index query"
 
 let show_query =
   Caqti_request.find_opt Caqti_type.int
@@ -28,7 +33,7 @@ let show (module Db : Caqti_lwt.CONNECTION) id =
         | None -> None
       in
       Lwt.return record
-  | Error _ -> failwith "Error in show query"
+  | Error err -> failwith (Caqti_error.show err)
 
 let create_query =
   Caqti_request.find
@@ -37,7 +42,10 @@ let create_query =
     {sql| INSERT INTO todo (title, completed) VALUES (?, ?) RETURNING id |sql}
 
 let create (module Db : Caqti_lwt.CONNECTION) ~title ~completed =
-  Db.find create_query (title, completed)
+  let result = Db.find create_query (title, completed) in
+  match%lwt result with
+  | Ok data -> data |> Lwt.return
+  | Error err -> failwith (Caqti_error.show err)
 
 let update_query =
   Caqti_request.exec
@@ -48,9 +56,16 @@ let update_query =
     |}
 
 let update (module Db : Caqti_lwt.CONNECTION) {id; title; completed} =
-  Db.exec update_query (title, completed, id)
+  let result = Db.exec update_query (title, completed, id) in
+  match%lwt result with
+  | Ok data -> data |> Lwt.return
+  | Error err -> failwith (Caqti_error.show err)
 
 let destroy_query =
   Caqti_request.exec Caqti_type.int {sql| DELETE FROM todo WHERE id = (?) |sql}
 
-let destroy (module Db : Caqti_lwt.CONNECTION) id = Db.exec destroy_query id
+let destroy (module Db : Caqti_lwt.CONNECTION) id =
+  let result = Db.exec destroy_query id in
+  match%lwt result with
+  | Ok data -> data |> Lwt.return
+  | Error err -> failwith (Caqti_error.show err)

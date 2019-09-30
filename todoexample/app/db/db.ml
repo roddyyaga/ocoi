@@ -10,7 +10,7 @@ let or_error m =
 
 let%lwt db_connection_future = Caqti_lwt.connect connection_uri
 
-let db_connection =
+let connection =
   match db_connection_future with
   | Ok conn -> conn
   | Error err -> failwith (Caqti_error.show err)
