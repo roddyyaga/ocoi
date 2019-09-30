@@ -1,3 +1,4 @@
+(* TODO - update generated code to match changes to example project code *)
 open Asttypes
 open Parsetree
 open Core
