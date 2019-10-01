@@ -3,5 +3,5 @@
 (libraries lwt lwt.unix
            opium
            ocoi
-           models db queries)
+           models queries db)
 (preprocess (pps lwt_ppx)))

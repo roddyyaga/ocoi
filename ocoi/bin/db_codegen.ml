@@ -1,64 +1,5 @@
-(* TODO - update generated code to match changes to example project code *)
-open Asttypes
-open Parsetree
+open Codegen
 open Core
-
-(** Return whether an AST node is of the form `type t = {...}`. *)
-let is_valid_t_node {pstr_desc = desc; _} =
-  match desc with
-  | Pstr_type (_, declaration_list) -> (
-    match declaration_list with
-    | [{ptype_name; ptype_kind; _}] -> (
-      match (ptype_name.txt, ptype_kind) with
-      | "t", Ptype_record _ -> true
-      | _ -> false )
-    | _ -> false )
-  | _ -> false
-
-(** Find a unique node of the form `type t = {...}` in an AST tree and return its labels. *)
-let get_t_node_labels_ast tree =
-  match List.filter tree ~f:is_valid_t_node with
-  | [ { pstr_desc = Pstr_type (_, [{ptype_kind = Ptype_record label_decls; _}]);
-        _ } ] ->
-      label_decls
-  | [] -> failwith "No `type t = {}` declaration found."
-  | _ ->
-      failwith
-        "Multiple `type t = {}` declarations found, or declaration(s) had \
-         invalid structure."
-
-type resource_attribute =
-  {name: string; type_name: string; sql_name: string; sql_type_name: string}
-(** Specifies how a resource attribute is represented in OCaml source code and SQL. *)
-
-(* TODO - work out which postgres types would be best to generate *)
-(* TODO - generate types without NOT NULL for options *)
-(* TODO - generate types for enums *)
-(* TODO - generate types for foreign keys *)
-let ocaml_type_name_to_sql name type_name =
-  let base_sql_type =
-    match name with
-    | "id" -> (
-      match type_name with
-      | "int" -> "SERIAL PRIMARY KEY"
-      (* TODO - handle int option? *)
-      | _ -> failwith "SQL generation for non-int id not supported" )
-    | _ -> (
-      match type_name with
-      | "int" -> "INT"
-      | "bool" -> "BOOLEAN"
-      | "string" -> "VARCHAR"
-      | _ -> failwith ("SQL generation not implemented for type " ^ type_name)
-      )
-  in
-  base_sql_type ^ " NOT NULL"
-
-(* TODO - handle forbidden SQL column names *)
-let make_resource_attribute (name, type_name) =
-  { name;
-    type_name;
-    sql_name = name;
-    sql_type_name = ocaml_type_name_to_sql name type_name }
 
 (** Given a list of resource attributes, return a string "column_name1, column_name2, ..."
  * (note the lack of parentheses). *)
@@ -68,11 +9,6 @@ let column_tuple_string resource_attributes =
       (List.map resource_attributes ~f:(fun a -> a.sql_name))
   in
   joined_names
-
-(** Given a list of resource attibutes, return a string "record_name1, record_name2, ..."
-   * or "record_name1; record_name2; ...". *)
-let record_names_string resource_attributes sep =
-  String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.name))
 
 (** Given a list of resource attributes, return a string "(tup[n] type1 type2 ...)". *)
 let caqti_tuple_type_string resource_attributes =
@@ -86,35 +22,6 @@ let caqti_tuple_type_string resource_attributes =
     String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.type_name))
   in
   Printf.sprintf "(%s %s)" inital_string joined_types
-
-(** Given a list of resource attibutes, return a string "~record_name1 ~record_name2 ...". *)
-let parameters_string resource_attributes =
-  String.concat ~sep:" "
-    (List.map resource_attributes ~f:(fun a -> "~" ^ a.name))
-
-(** Produce a resource_attribute from a relevant bit of AST. *)
-let process_label_decl ({pld_name; pld_type; _} : label_declaration) =
-  let type_string =
-    match pld_type with
-    | {ptyp_desc = Ptyp_constr (ident, _); _} -> (
-      match ident.txt with
-      | Longident.Lident s -> s
-      | _ -> failwith "Unexpected complex long identifiers in record" )
-    | _ -> failwith "SQL generation only possible for basic types"
-  in
-  make_resource_attribute (pld_name.txt, type_string)
-
-(** Extract resource_attributes from label declarations AST. *)
-let get_resource_attributes (label_decls : label_declaration list) =
-  List.map label_decls ~f:process_label_decl
-
-(** Filter the resource_attribute representing ID from a list. *)
-let without_id resource_attributes =
-  List.filter resource_attributes ~f:(fun a -> a.name <> "id")
-
-(** Get the resource_attribute respresenting ID from a list. *)
-let get_id_attribute resource_attributes =
-  List.find_exn resource_attributes ~f:(fun a -> a.name = "id")
 
 (** Generate the code to create the table for a resource. *)
 let generate_create_table_sql table_name resource_attributes =
@@ -161,7 +68,7 @@ let all (module Db : Caqti_lwt.CONNECTION) =
       (fun (%s) acc -> {%s} :: acc)
       () []
   in
-  handle_caqti_result result|ocaml}
+  Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string resource_attributes)
     (column_tuple_string resource_attributes)
     table_name
@@ -181,7 +88,7 @@ let make_show_code table_name resource_attributes =
 
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
-  let%%lwt data = handle_caqti_result result in
+  let%%lwt data = Ocoi.Db.handle_caqti_result result in
   let record =
     match data with
     | Some (%s) -> Some {%s}
@@ -205,7 +112,7 @@ let make_create_code table_name resource_attributes =
 
 let create (module Db : Caqti_lwt.CONNECTION) %s =
   let result = Db.find create_query (%s) in
-  handle_caqti_result result|ocaml}
+  Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string (without_id resource_attributes))
     table_name
     (column_tuple_string (without_id resource_attributes))
@@ -227,7 +134,7 @@ let make_update_code table_name resource_attributes =
 
 let update (module Db : Caqti_lwt.CONNECTION) {%s} =
   let result = Db.exec update_query (%s, id) in
-  handle_caqti_result result|ocaml}
+  Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string
        (without_id resource_attributes @ [get_id_attribute resource_attributes]))
     table_name
@@ -245,10 +152,11 @@ let make_destroy_code table_name =
 
 let destroy (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.exec destroy_query id in
-  handle_caqti_result result|ocaml}
+  Ocoi.Db.handle_caqti_result result|ocaml}
     table_name
 
 let write_migration_queries name tree =
+  (* TODO - put migration queries somewhere else. *)
   let chopped_name = Filename.chop_extension name in
   let oc = Out_channel.create (chopped_name ^ "_migration_queries.ml") in
   let module_name = Filename.basename chopped_name in
@@ -260,9 +168,10 @@ let write_migration_queries name tree =
   Out_channel.close oc
 
 let write_crud_queries name tree =
-  let chopped_name = Filename.chop_extension name in
-  let oc = Out_channel.create (chopped_name ^ "_queries.ml") in
-  let module_name = Filename.basename chopped_name in
+  let open Filename in
+  let queries_name = concat (dirname name) ("../queries/" ^ basename name) in
+  let oc = Out_channel.create queries_name in
+  let module_name = name |> chop_extension |> basename in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
@@ -273,7 +182,7 @@ let write_crud_queries name tree =
       make_update_code module_name resource_attributes;
       make_destroy_code module_name ]
   in
-  let module_open_statement = "open " ^ String.capitalize module_name in
+  let module_open_statement = "open Models." ^ String.capitalize module_name in
   let queries_string =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in

@@ -1,6 +1,6 @@
 (library
-(name models)
+(name queries)
 (libraries lwt caqti caqti-lwt caqti-driver-postgresql
-           core yojson ppx_deriving_yojson.runtime
-           ocoi)
+           ocoi
+           models)
 (preprocess (pps lwt_ppx ppx_deriving_yojson)))

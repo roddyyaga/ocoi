@@ -1,34 +1,54 @@
 open Core
 
-let generate_model =
+let generate_queries =
+  (* TODO - fill out readmes *)
   Command.basic ~summary:"Generate CRUD DB code for a model"
     Command.Let_syntax.(
       let%map_open name = anon ("name" %: Filename.arg_type) in
       fun () ->
-        let tree =
-          Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc"
-            name
-        in
+        let tree = Codegen.load_tree name in
         Db_codegen.write_migration_queries name tree ;
         Db_codegen.write_crud_queries name tree)
 
+let generate_controller =
+  Command.basic ~summary:"Generate CRUD controller code for a model"
+    Command.Let_syntax.(
+      let%map_open name = anon ("name" %: Filename.arg_type) in
+      fun () ->
+        let tree = Codegen.load_tree name in
+        Controller_codegen.write_controller name tree)
+
+let generate_scaffold =
+  Command.basic ~summary:"Generate CRUD controller and DB code for a model"
+    ~readme:(fun () ->
+      "Currently just does `ocoi generate queries` and `ocoi generate \
+       controller`.")
+    Command.Let_syntax.(
+      let%map_open name = anon ("name" %: Filename.arg_type) in
+      fun () ->
+        let tree = Codegen.load_tree name in
+        Db_codegen.write_migration_queries name tree ;
+        Db_codegen.write_crud_queries name tree ;
+        Controller_codegen.write_controller name tree)
+
 let generate =
   Command.group ~summary:"Generate various kinds of code"
-    [("model", generate_model)]
+    [ ("queries", generate_queries);
+      ("controller", generate_controller);
+      ("scaffold", generate_scaffold) ]
 
 let new_ =
-  Command.basic ~summary:"Create an empty project (not yet implemented)"
+  Command.basic ~summary:"Create an empty project"
     Command.Let_syntax.(
       let%map_open name = anon ("name" %: Filename.arg_type) in
       (* TODO - sanitise name *)
       fun () ->
         let template_directory_name =
           FilePath.concat
-            (FilePath.dirname Sys.argv.(0))
-            "../share/project_template"
+            ("ocoi" |> FileUtil.which |> FilePath.dirname)
+            "../share/ocoi/project_template"
         in
-        let () = FileUtil.cp ~recurse:true [template_directory_name] name in
-        print_endline template_directory_name)
+        FileUtil.cp ~recurse:true [template_directory_name] name)
 
 let start_server () =
   let result =
@@ -48,12 +68,15 @@ let kill process =
 
 let restart_server server =
   let () = kill server in
-  start_server ()
+  let () = print_endline "Server killed" in
+  let new_server = start_server () in
+  let () = print_endline "Server started" in
+  new_server
 
 let rec restart_on_change server fswatch_output =
   match In_channel.input_line fswatch_output with
   | Some s ->
-      let () = print_endline s in
+      let () = Printf.printf "Restarting server, reason: %s\n" s in
       let new_server = restart_server server in
       restart_on_change new_server fswatch_output
   | None -> failwith "Unexpected end of input channel!"
@@ -65,10 +88,11 @@ let server =
        entry point. It is implemented by rerunning `dune exec -- ./main.exe` \
        when inotifywait detects changes.")
     (Command.Param.return (fun () ->
-         let () = print_endline "Starting server." in
+         let () = print_endline "Starting server" in
          let server = start_server () in
          let watch_command =
            (* TODO - optimise inotifywait command (e.g. limit to certain file types) *)
+           (* FIXME - sometimes it seem to watch the _build directory even though it should be excluded *)
            "inotifywait -mr -e modify -e attrib -e close_write -e moved_to -e \
             moved_from -e create -e delete -e delete_self @./_build/ ."
          in

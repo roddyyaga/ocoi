@@ -1,5 +1,15 @@
 (install
-(files test.txt)
+(files
+(project_template/app/dune as project_template/app/dune)
+(project_template/app/dune-project as project_template/app/dune-project)
+(project_template/app/main.ml as project_template/app/main.ml)
+(project_template/app/.ocamlformat as project_template/app/.ocamlformat)
+(project_template/app/controllers/dune as project_template/app/controllers/dune)
+(project_template/app/models/dune as project_template/app/models/dune)
+(project_template/app/queries/dune as project_template/app/queries/dune)
+(project_template/app/db/dune as project_template/app/db/dune)
+(project_template/app/db/db.ml as project_template/app/db/db.ml)
+)
 (section share)
 (package ocoi)
 )

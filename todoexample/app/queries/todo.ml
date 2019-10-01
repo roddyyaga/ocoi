@@ -1,9 +1,4 @@
-open Todo
-
-let handle_caqti_result result =
-  match%lwt result with
-  | Ok data -> Lwt.return data
-  | Error err -> failwith (Caqti_error.show err)
+open Models.Todo
 
 let all_query =
   Caqti_request.collect Caqti_type.unit
@@ -16,7 +11,7 @@ let all (module Db : Caqti_lwt.CONNECTION) =
       (fun (id, title, completed) acc -> {id; title; completed} :: acc)
       () []
   in
-  handle_caqti_result result
+  Ocoi.Db.handle_caqti_result result
 
 let show_query =
   Caqti_request.find_opt Caqti_type.int
@@ -28,7 +23,7 @@ let show_query =
 
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
-  let%lwt data = handle_caqti_result result in
+  let%lwt data = Ocoi.Db.handle_caqti_result result in
   let record =
     match data with
     | Some (id, title, completed) -> Some {id; title; completed}
@@ -44,7 +39,7 @@ let create_query =
 
 let create (module Db : Caqti_lwt.CONNECTION) ~title ~completed =
   let result = Db.find create_query (title, completed) in
-  handle_caqti_result result
+  Ocoi.Db.handle_caqti_result result
 
 let update_query =
   Caqti_request.exec
@@ -56,11 +51,11 @@ let update_query =
 
 let update (module Db : Caqti_lwt.CONNECTION) {id; title; completed} =
   let result = Db.exec update_query (title, completed, id) in
-  handle_caqti_result result
+  Ocoi.Db.handle_caqti_result result
 
 let destroy_query =
   Caqti_request.exec Caqti_type.int {sql| DELETE FROM todo WHERE id = (?) |sql}
 
 let destroy (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.exec destroy_query id in
-  handle_caqti_result result
+  Ocoi.Db.handle_caqti_result result

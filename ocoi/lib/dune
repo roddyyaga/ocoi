@@ -1,6 +1,7 @@
 (library
 (name ocoi)
 (public_name ocoi)
-(libraries core lwt lwt.unix opium ppx_deriving_yojson.runtime)
+(libraries core lwt lwt.unix opium ppx_deriving_yojson.runtime
+           caqti caqti-lwt caqti-driver-postgresql)
 (preprocess (pps lwt_ppx))
 )
