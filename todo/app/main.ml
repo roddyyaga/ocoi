@@ -1,5 +1,6 @@
 open Core
 open Opium.Std
+open Controllers
 
 let hello_world =
   get "/" (fun _ ->
@@ -7,4 +8,5 @@ let hello_world =
 
 let _ =
   let app = App.empty in
+  let app = Ocoi.Controllers.register_rud "/todos" (module Todo.Rud) app in
   app |> hello_world |> App.run_command

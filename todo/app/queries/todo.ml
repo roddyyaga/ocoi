@@ -1,7 +1,8 @@
 open Models.Todo
 
 let all_query =
-  Caqti_request.collect Caqti_type.unit Caqti_type.(tup3 int string bool)
+  Caqti_request.collect Caqti_type.unit
+    Caqti_type.(tup3 int string bool)
     {sql| SELECT id, title, completed FROM todo |sql}
 
 let all (module Db : Caqti_lwt.CONNECTION) =

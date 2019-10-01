@@ -47,11 +47,9 @@ This will produce directories and files like this:
         main.ml
 ```
 - :monorail: This should look fairly familiar if you've used frameworks such as rails in the past. Some of the
-  similarlities may be deceptive though. For example, Ice doesn't have an ORM (or indeed objects at all!) so models look
-  different. The structure is designed so that the content of `/models` is self-conained and could be shared with
-  frontend code in ReasonML/BuckleScript or js\_of\_ocaml.
+  similarlities might be deceptive though.
 
-In another terminal, go into the app directory and start the server:
+  In another terminal, go into the app directory and start the server:
 ```
 another_terminal$ cd todo/app && ocoi server
 ```
@@ -71,7 +69,27 @@ from OCaml
 
 ```
 Alternatively you can go to `http://localhost:3000/` in a browser.
+
 ### Adding a resource
+Now we can start building the actual app. The first step here is defining a resource to represent todo items. In Ice,
+this is done using a type in a file in the `models` directory:
+```
+$ echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" >> models/todo.ml
+```
+We also add a plugin to automatically generate functions for JSON (de)serialisation.
+
+- :monorail: This demonstrates one of the differences between Ice and rails or Django: models don't know how to
+  interact with the database (there is no ORM!) but they can convert to and from JSON. One of the reasons for this setup
+  is to facilitate sharing of model code with frontends written in ReasonML/BuckleScript or js\_of\_ocaml.
+
+For this to be useful we need some code to persist todos to a database and do things with them based on requests to the
+server. Specifically, we want to implement CRUD functionality (allowing todos to be Created, Read, Updated and Deleted)
+and expose these operations as a REST API. Ice can generate all of this code from the type in `models/todo.ml`:
+```
+$ ocoi generate scaffold models/todo.ml
+```
+This creates two more files called `todo.ml`, one in `/queries` and one in `/controllers`, and also migrations. The `queries` file contains
+queries that use the Caqti library to interact with a Postgres database. The `controllers` file.
 
 ### Creating a project
 First install Ice. It isn't on OPAM yet, so build from source then install manually with `dune build @install
