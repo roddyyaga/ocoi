@@ -41,7 +41,7 @@ This will produce directories and files like this:
         dune-project
         main.ml
 ```
-- :monorail: - This should look fairly familiar if you've used frameworks such as rails in the past. Some of the
+:monorail: - This should look fairly familiar if you've used frameworks such as rails in the past. Some of the
   similarlities may be deceptive though. For example, Ice doesn't have an ORM (or indeed objects at all!) so models look
   different. The structure is designed so that the content of `/models` is self-conained and could be shared with
   frontend code in ReasonML/BuckleScript or js\_of\_ocaml.
