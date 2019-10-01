@@ -1,5 +1,10 @@
 open Todo
 
+let handle_caqti_result result =
+  match%lwt result with
+  | Ok data -> Lwt.return data
+  | Error err -> failwith (Caqti_error.show err)
+
 let all_query =
   Caqti_request.collect Caqti_type.unit
     Caqti_type.(tup3 int string bool)
@@ -11,9 +16,7 @@ let all (module Db : Caqti_lwt.CONNECTION) =
       (fun (id, title, completed) acc -> {id; title; completed} :: acc)
       () []
   in
-  match%lwt result with
-  | Ok data -> data |> Lwt.return
-  | Error _ -> failwith "Error in index query"
+  handle_caqti_result result
 
 let show_query =
   Caqti_request.find_opt Caqti_type.int
@@ -25,15 +28,13 @@ let show_query =
 
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
-  match%lwt result with
-  | Ok data ->
-      let record =
-        match data with
-        | Some (id, title, completed) -> Some {id; title; completed}
-        | None -> None
-      in
-      Lwt.return record
-  | Error err -> failwith (Caqti_error.show err)
+  let%lwt data = handle_caqti_result result in
+  let record =
+    match data with
+    | Some (id, title, completed) -> Some {id; title; completed}
+    | None -> None
+  in
+  Lwt.return record
 
 let create_query =
   Caqti_request.find
@@ -43,9 +44,7 @@ let create_query =
 
 let create (module Db : Caqti_lwt.CONNECTION) ~title ~completed =
   let result = Db.find create_query (title, completed) in
-  match%lwt result with
-  | Ok data -> data |> Lwt.return
-  | Error err -> failwith (Caqti_error.show err)
+  handle_caqti_result result
 
 let update_query =
   Caqti_request.exec
@@ -57,15 +56,11 @@ let update_query =
 
 let update (module Db : Caqti_lwt.CONNECTION) {id; title; completed} =
   let result = Db.exec update_query (title, completed, id) in
-  match%lwt result with
-  | Ok data -> data |> Lwt.return
-  | Error err -> failwith (Caqti_error.show err)
+  handle_caqti_result result
 
 let destroy_query =
   Caqti_request.exec Caqti_type.int {sql| DELETE FROM todo WHERE id = (?) |sql}
 
 let destroy (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.exec destroy_query id in
-  match%lwt result with
-  | Ok data -> data |> Lwt.return
-  | Error err -> failwith (Caqti_error.show err)
+  handle_caqti_result result

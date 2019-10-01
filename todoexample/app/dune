@@ -1,5 +1,7 @@
 (executable
 (name main)
-(libraries models controllers
-           opium yojson)
-(preprocess (pps lwt_ppx)))
+(libraries opium yojson
+           ocoi
+           models controllers)
+(preprocess (pps lwt_ppx))
+)

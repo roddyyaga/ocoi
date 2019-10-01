@@ -129,6 +129,8 @@ let generate_create_table_sql table_name resource_attributes =
     |sql}
     table_name body
 
+(* TODO - generate migrations scripts *)
+
 (** Generate migrations code. *)
 let make_migration_code table_name resource_attributes =
   let query = generate_create_table_sql table_name resource_attributes in
@@ -154,10 +156,12 @@ let make_all_code table_name resource_attributes =
     {sql| SELECT %s FROM %s |sql}
 
 let all (module Db : Caqti_lwt.CONNECTION) =
-  Db.fold all_query
-    (fun (%s) acc ->
-      {%s} :: acc)
-    () []|ocaml}
+  let result =
+    Db.fold all_query
+      (fun (%s) acc -> {%s} :: acc)
+      () []
+  in
+  handle_caqti_result result|ocaml}
     (caqti_tuple_type_string resource_attributes)
     (column_tuple_string resource_attributes)
     table_name
@@ -177,15 +181,13 @@ let make_show_code table_name resource_attributes =
 
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
-  match%%lwt result with
-  | Ok data ->
-      let record =
-        match data with
-        | Some (%s) -> Some {%s}
-        | None -> None
-      in
-      Lwt.return record
-  | Error _ -> failwith "Error in show query"|ocaml}
+  let%%lwt data = handle_caqti_result result in
+  let record =
+    match data with
+    | Some (%s) -> Some {%s}
+    | None -> None
+  in
+  Lwt.return record|ocaml}
     (caqti_tuple_type_string resource_attributes)
     (column_tuple_string resource_attributes)
     table_name
@@ -202,7 +204,8 @@ let make_create_code table_name resource_attributes =
     {sql| INSERT INTO %s (%s) VALUES (%s) RETURNING id |sql}
 
 let create (module Db : Caqti_lwt.CONNECTION) %s =
-    Db.find create_query (%s)|ocaml}
+  let result = Db.find create_query (%s) in
+  handle_caqti_result result|ocaml}
     (caqti_tuple_type_string (without_id resource_attributes))
     table_name
     (column_tuple_string (without_id resource_attributes))
@@ -223,7 +226,8 @@ let make_update_code table_name resource_attributes =
     |}
 
 let update (module Db : Caqti_lwt.CONNECTION) {%s} =
-    Db.exec update_query (%s, id)|ocaml}
+  let result = Db.exec update_query (%s, id) in
+  handle_caqti_result result|ocaml}
     (caqti_tuple_type_string
        (without_id resource_attributes @ [get_id_attribute resource_attributes]))
     table_name
@@ -237,10 +241,11 @@ let update (module Db : Caqti_lwt.CONNECTION) {%s} =
 let make_destroy_code table_name =
   Printf.sprintf
     {ocaml|let destroy_query =
-  Caqti_request.exec Caqti_type.int
-    {sql| DELETE FROM %s WHERE id = (?) |sql}
+  Caqti_request.exec Caqti_type.int {sql| DELETE FROM %s WHERE id = (?) |sql}
 
-let destroy (module Db : Caqti_lwt.CONNECTION) id = Db.exec destroy_query id|ocaml}
+let destroy (module Db : Caqti_lwt.CONNECTION) id =
+  let result = Db.exec destroy_query id in
+  handle_caqti_result result|ocaml}
     table_name
 
 let write_migration_queries name tree =
