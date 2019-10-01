@@ -41,7 +41,7 @@ This will produce directories and files like this:
         dune-project
         main.ml
 ```
-:monorail: - This should look fairly familiar if you've used frameworks such as rails in the past. Some of the
+:monorail: This should look fairly familiar if you've used frameworks such as rails in the past. Some of the
   similarlities may be deceptive though. For example, Ice doesn't have an ORM (or indeed objects at all!) so models look
   different. The structure is designed so that the content of `/models` is self-conained and could be shared with
   frontend code in ReasonML/BuckleScript or js\_of\_ocaml.
@@ -51,7 +51,7 @@ In another terminal, go into the app directory and start the server:
 other_terminal$ cd todo/app && ocoi server
 ```
 
-- :dromedary_camel: - Ice projects are built with dune using `main.ml` as an entry point (which starts an Opium server).
+- :dromedary_camel: Ice projects are built with dune using `main.ml` as an entry point (which starts an Opium server).
   The `ocoi server` command just watches your source code and does `dune exec -- ./main.exe` when something changes.
 
 ### Creating a project
