@@ -9,6 +9,7 @@
 (project_template/app/queries/dune as project_template/app/queries/dune)
 (project_template/app/db/dune as project_template/app/db/dune)
 (project_template/app/db/db.ml as project_template/app/db/db.ml)
+(project_template/app/db/migrations/test as project_template/app/db/migrations)
 )
 (section share)
 (package ocoi)

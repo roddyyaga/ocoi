@@ -157,6 +157,8 @@ let destroy (module Db : Caqti_lwt.CONNECTION) id =
 
 let write_migration_queries name tree =
   (* TODO - put migration queries somewhere else. *)
+  (*let open Filename in
+  let queries_name = concat (dirname name) ("../queries/" ^ basename name) in*)
   let chopped_name = Filename.chop_extension name in
   let oc = Out_channel.create (chopped_name ^ "_migration_queries.ml") in
   let module_name = Filename.basename chopped_name in

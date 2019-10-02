@@ -1,0 +1,14 @@
+Basic dune question:
+I want this directory structure:
+```
+/a
+  /b
+    /c
+      d.ml
+    b.ml
+  /e
+    f.ml
+```
+where `f.ml` should be able to access `b.ml` as `B` and `d.ml` as `B.C.D`, and `d.ml` uses code from `b.ml`. What do I
+need in the dune files to make this work? I tried various things but couldn't find a setup that exposed `D` to `f.ml`
+and didn't cause a circular dependency between `b.ml` and `d.ml`.
