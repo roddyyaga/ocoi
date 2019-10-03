@@ -44,6 +44,9 @@ let watch_file_descr_output descr ~f ~channel_finished =
 (* TODO - force messages about closing channels/server finishing to be printend
  * before "Server built and started" *)
 (* TODO - split into build and run steps *)
+
+(** Start a server
+ * and asynchronously print its stdout and stderr and watch for its termination status *)
 let start_server () =
   let result =
     Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"]
@@ -71,17 +74,20 @@ let start_server () =
   in
   result
 
+(** Kill a server and start a new one *)
 let restart_server server =
   let () = kill server in
   let () = print_endline "Server killed" in
   let new_server = start_server () in
   new_server
 
-let restart_on_change server fswatch_output freq =
+(** Restart a server every time a line is read from the output of some process.
+ * *)
+let restart_on_change ~server ~watchtool_output ~freq =
   (* TODO - use version in some situations *)
   let rec restart_on_change_after ~restart_time ~server ~version =
     let ic =
-      fswatch_output
+      watchtool_output
       |> Lwt_unix.of_unix_file_descr ~blocking:true
       |> Lwt_io.(of_fd ~mode:input)
     in

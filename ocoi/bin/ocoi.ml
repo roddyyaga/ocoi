@@ -19,6 +19,7 @@ let generate_controller =
         Controller_codegen.write_controller name tree)
 
 let generate_scaffold =
+  (* TODO - pluralise name *)
   Command.basic ~summary:"Generate CRUD controller and DB code for a model"
     ~readme:(fun () ->
       "Currently just does `ocoi generate queries` and `ocoi generate \
@@ -82,12 +83,13 @@ let server =
              "@./_build/";
              "." ]
          in
-         (* let fswatch_output = Unix.open_process_in watch_command in *)
-         let fswatch_output =
+         let watchtool_output =
            (Unix.create_process ~prog:"inotifywait" ~args:watch_args).stdout
          in
          (* TODO - ensure spawned processes are nicely cleaned up when killed *)
-         Lwt_main.run (Server.restart_on_change server fswatch_output 2.0)))
+         Lwt_main.run
+           (* TODO - make 2 second maximum restart frequency configurable *)
+           (Server.restart_on_change ~server ~watchtool_output ~freq:2.0)))
 
 let command =
   Command.group ~summary:"Run OCOI commands"
