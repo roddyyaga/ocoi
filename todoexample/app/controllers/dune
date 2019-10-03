@@ -1,7 +1,0 @@
-(library
-(name controllers)
-(libraries lwt lwt.unix
-           opium
-           ocoi
-           models db queries)
-(preprocess (pps lwt_ppx)))

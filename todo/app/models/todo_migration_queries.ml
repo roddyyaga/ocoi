@@ -1,13 +1,15 @@
 let migrate_query =
   Caqti_request.exec Caqti_type.unit
-   {|CREATE TABLE todo (
+    {|CREATE TABLE todo (
          id SERIAL PRIMARY KEY NOT NULL,
 title VARCHAR NOT NULL,
 completed BOOLEAN NOT NULL
          )
     |}
 
-let migrate (module Db : Caqti_lwt.CONNECTION) = Db.exec migrate_query ()
+let migrate (module Db : Caqti_lwt.CONNECTION) =
+  let () = print_endline "In migrage" in
+  Db.exec migrate_query ()
 
 let rollback_query = Caqti_request.exec Caqti_type.unit {| DROP TABLE todo |}
 

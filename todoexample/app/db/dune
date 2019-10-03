@@ -1,4 +1,0 @@
-(library
-(name db)
-(libraries lwt lwt.unix caqti caqti-lwt caqti-driver-postgresql)
-(preprocess (pps lwt_ppx)))

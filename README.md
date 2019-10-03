@@ -39,6 +39,7 @@ This will produce directories and files like this:
         /queries
             dune
         /db
+            /migrate
             dune
             db.ml
         .ocamlformat
@@ -88,37 +89,40 @@ and expose these operations as a REST API. Ice can generate all of this code fro
 ```
 $ ocoi generate scaffold models/todo.ml
 ```
-This creates two more files called `todo.ml`, one in `/queries` and one in `/controllers`, and also migrations. The `queries` file contains
-queries that use the Caqti library to interact with a Postgres database. The `controllers` file.
+This creates two more files called `todo.ml`, one in `/queries` and one in `/controllers`. The `queries` file contains
+queries that use the Caqti library to interact with a Postgres database. The `controllers` file defines the interface
+between requests to the API and database operations or other things on the model layer. Also, two files in
+`db/migrate` called `todo_migrate.ml` and `todo_rollback.ml` are created, which we will need shortly.
 
-### Creating a project
-First install Ice. It isn't on OPAM yet, so build from source then install manually with `dune build @install
-&& dune install` (after installing any dependencies).
+### Using the todo resource
+TODO - explanation about controllers
+Edit `main.ml` to register the RUD operations from the todo controller by changing it to this:
+```ocaml
+open Core
+open Opium.Std
+open Controllers
 
-### Creating a project
-Then check it has been installed by doing `ocoi version`. Create a new project  `ocoi new todo`. This will have the following structure:
+let hello_world =
+  get "/" (fun _ ->
+      `String "Hello world!\n\nfrom OCaml\n     Ice" |> respond')
+
+let _ =
+  let app = App.empty in
+  app
+  |> Ocoi.Controllers.register_rud "/todos" (module Todo.Rud)
+  |> hello_world |> App.run_command
 ```
-/todo
-    /app
-        /models
-            dune
-        /controllers
-            dune
-        .ocamlformat
-        dune
-        dune-project
-        main.ml
+Check out the todos resource:
 ```
-Now if you do `cd todo/app` followed by `ocoi server` and open `localhost:3000` in a browser you will see a hello world page!
-
-### Adding a resource
-As is traditional, we will start out by building a simple todo app. The obvious first step is creating a resource to
-represent a todo item. We will represent this with a simple OCaml record type `{id: int; title: string; completed:
-bool}`. In Ice, resources are specified with modules containing types such as this in the models directory. So create a
-new file `models/todo.ml` and edit it to contain `type t = {id: int; title: string; completed: bool} [@@deriving yojson]`.
-
-To use this type we need need some more code, for instance to store it in a database and perform operations with it when
-the server gets requests. 
+$ http localhost:3000/todos
+```
+(or go to `http://localhost:3000/todos` in a browser).
+You should get an error saying the `todo` relation doesn't exist. This makes sense, because we haven't created the table
+for todos yet. So do that:
+```
+$ dune exec -- ./db/migrate/todo_migrate.exe
+```
+Now `http localhost:3000/todos` should return an empty list!
 
 ## Features
 ### Scaffold generation

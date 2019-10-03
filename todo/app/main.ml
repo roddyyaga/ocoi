@@ -2,6 +2,8 @@ open Core
 open Opium.Std
 open Controllers
 
+let x = 1
+
 let hello_world =
   get "/" (fun _ ->
       `String "Hello world!\n\nfrom OCaml\n     Ice" |> respond')

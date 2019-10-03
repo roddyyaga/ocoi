@@ -7,8 +7,8 @@ let generate_queries =
       let%map_open name = anon ("name" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree name in
-        Db_codegen.write_migration_queries name tree ;
-        Db_codegen.write_crud_queries name tree)
+        Db_codegen.write_crud_queries name tree ;
+        Db_codegen.write_migration_scripts name)
 
 let generate_controller =
   Command.basic ~summary:"Generate CRUD controller code for a model"
@@ -28,8 +28,8 @@ let generate_scaffold =
       let%map_open name = anon ("name" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree name in
-        Db_codegen.write_migration_queries name tree ;
         Db_codegen.write_crud_queries name tree ;
+        Db_codegen.write_migration_scripts name ;
         Controller_codegen.write_controller name tree)
 
 let generate =

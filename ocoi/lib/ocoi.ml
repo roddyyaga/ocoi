@@ -1,4 +1,4 @@
-(** Test if this turns up in the docs *)
+(** OCaml On Ice library *)
 
 module Controllers = Controllers
 module Db = Db

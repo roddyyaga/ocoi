@@ -44,12 +44,13 @@ let watch_file_descr_output descr ~f ~channel_finished =
 (* TODO - force messages about closing channels/server finishing to be printend
  * before "Server built and started" *)
 (* TODO - split into build and run steps *)
+(* TODO - pass options to server down to main.exe *)
 
 (** Start a server
  * and asynchronously print its stdout and stderr and watch for its termination status *)
 let start_server () =
   let result =
-    Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"]
+    Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"; "-d"]
   in
   let () = print_endline "Server built and started" in
   let () =
