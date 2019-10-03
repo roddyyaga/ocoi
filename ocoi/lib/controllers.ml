@@ -4,25 +4,20 @@ open Handler_utils
 
 module type Rud = sig
   type t
-  (** The model type *)
 
   val to_yojson : t -> Yojson.Safe.t
 
   val of_yojson : Yojson.Safe.t -> t Ppx_deriving_yojson_runtime.error_or
 
   val index : unit -> t list Lwt.t
-  (** Gets all instances of the model *)
 
   val show : int -> t option Lwt.t
-  (** Gets an instance of the model by id *)
 
   (* TODO - add create? *)
 
   val update : t -> unit Lwt.t
-  (** Update a model *)
 
   val destroy : int -> unit Lwt.t
-  (** Destroy a model *)
 end
 
 let index_handler name (module Rud : Rud) =
