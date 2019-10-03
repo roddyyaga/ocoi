@@ -59,17 +59,35 @@ let server =
     (Command.Param.return (fun () ->
          let () = print_endline "Starting server" in
          let server = Server.start_server () in
-         let watch_command =
-           (* TODO - optimise inotifywait command (e.g. limit to certain file types) *)
-           (* FIXME - sometimes it seem to watch the _build directory even though it should be excluded *)
-           (* Suppress messages from stderr about setting up watches. *)
-           "inotifywait -mr -e modify -e attrib -e close_write -e moved_to -e \
-            moved_from -e create -e delete -e delete_self @./_build/ . \
-            2>/dev/null"
+         (* TODO - optimise inotifywait command (e.g. limit to certain file types) *)
+         (* FIXME - sometimes it seem to watch the _build directory even though it should be excluded *)
+         let watch_args =
+           [ "-mr";
+             "-e";
+             "modify";
+             "-e";
+             "attrib";
+             "-e";
+             "close_write";
+             "-e";
+             "moved_to";
+             "-e";
+             "moved_from";
+             "-e";
+             "create";
+             "-e";
+             "delete";
+             "-e";
+             "delete_self";
+             "@./_build/";
+             "." ]
          in
-         let fswatch_output = Unix.open_process_in watch_command in
+         (* let fswatch_output = Unix.open_process_in watch_command in *)
+         let fswatch_output =
+           (Unix.create_process ~prog:"inotifywait" ~args:watch_args).stdout
+         in
          (* TODO - ensure spawned processes are nicely cleaned up when killed *)
-         Server.restart_on_change server fswatch_output 1.0))
+         Lwt_main.run (Server.restart_on_change server fswatch_output 2.0)))
 
 let command =
   Command.group ~summary:"Run OCOI commands"
