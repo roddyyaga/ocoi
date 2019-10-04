@@ -1,6 +1,6 @@
 # OCaml On Ice
 
-OCaml On Ice is a planned web framework in the style of Ruby on Rails or Django, but in OCaml. Initially it will be an
+OCaml On Ice is a web framework in the style of Ruby on Rails or Django, but in OCaml. At the moment it is an
 extension of [Opium](https://github.com/rgrinberg/opium) plus some code generation tools. It is designed primarily for
 building REST APIs. In particular, it should work well for REST APIs that are consumed by ReasonML frontends (for
 instance it should be simple to share code between frontend and backend with that setup).
@@ -158,15 +158,7 @@ And Delete:
 $ http delete localhost:3000/todos/1
 ```
 
-## Features
-### Scaffold generation
-#### Models
-#### Controllers
-
 ## Dependencies
 OCaml On Ice uses Jane Street's Core as a standard library, Opium for handling requests and Caqti for accessing a
-database. Currently Caqti code generation targets Postgresql.
-
-## FAQ
-### 
-
+database. Currently Caqti code generation targets Postgresql. The non-OCaml dependencies are postgres and inotify-tools
+(the latter is only needed to run the server through the `ocoi` CLI, you can start it manually without it).
