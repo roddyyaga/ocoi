@@ -38,7 +38,7 @@ module type Crud = sig
   val of_yojson : Yojson.Safe.t -> t Ppx_deriving_yojson_runtime.error_or
   (** Produces a model instance from JSON (typically automatically generated with [[@@deriving yojson]]) *)
 
-  val create: Yojson.Safe.t -> int Lwt.t
+  val create : Yojson.Safe.t -> int Lwt.t
   (** [create json] stores a new model in the database (probably initialised with data from [json]) and returns its id *)
 
   val index : unit -> t list Lwt.t
@@ -55,7 +55,7 @@ module type Crud = sig
 end
 
 val create_handler : string -> (module Crud) -> App.builder
-(** [app |> create_handler "name" (module Crud) exposes [Crud.create] at [POST /name] *)
+(** [app |> create_handler "name" (module Crud)] exposes [Crud.create] at [POST /name] *)
 
 val index_handler : string -> (module Crud) -> App.builder
 (** [app |> index_handler "name" (module Crud)] exposes [Crud.index] at [GET /name] *)
