@@ -102,7 +102,7 @@ let create_or_update_migrate_dune ~model_path =
   let module_name, dir = module_name_and_dir ~model_path in
   let dune_path =
     let ( / ) = Filename.concat in
-    dir / ".." / "migrate" / "dune"
+    dir / ".." / "db" / "migrate" / "dune"
   in
   match Sys.file_exists dune_path with
   | `Yes -> update_migrations_dune ~module_name ~dune_path
