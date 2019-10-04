@@ -1,5 +1,5 @@
-open Codegen
 open Core
+open Codegen
 
 (* TODO - refactor to remove code shared with db_codegen.ml *)
 let make_controller_code module_name resource_attributes =
@@ -28,12 +28,12 @@ end|ocaml}
     queries_module queries_module record_literal queries_module record_literal
     queries_module
 
-let write_controller name tree =
+let write_controller ~model_path ~tree =
+  let module_name, dir = module_name_and_dir ~model_path in
   let controller_name =
-    FilePath.concat (FilePath.dirname name)
-      ("../controllers/" ^ Filename.basename name)
+    let ( / ) = Filename.concat in
+    dir / ".." / "controllers" / (module_name ^ ".ml")
   in
-  let module_name = name |> FilePath.chop_extension |> FilePath.basename in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in

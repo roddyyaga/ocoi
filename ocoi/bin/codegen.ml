@@ -1,6 +1,6 @@
+open Core
 open Asttypes
 open Parsetree
-open Core
 
 (** Return whether an AST node is of the form `type t = {...}`. *)
 let is_valid_t_node {pstr_desc = desc; _} =
@@ -96,5 +96,12 @@ let record_names_string resource_attributes sep =
   String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.name))
 
 (** Load an AST tree from a filename. *)
-let load_tree name =
-  Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc" name
+let load_tree ~model_path =
+  Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc"
+    model_path
+
+(** [module_name_and dir "path/to/model.ml"] returns [("model", "path/to")] *)
+let module_name_and_dir ~model_path =
+  let module_name = Filename.(model_path |> chop_extension |> basename) in
+  let dir = Filename.(dirname model_path) in
+  (module_name, dir)

@@ -4,19 +4,19 @@ let generate_queries =
   (* TODO - fill out readmes *)
   Command.basic ~summary:"Generate CRUD DB code for a model"
     Command.Let_syntax.(
-      let%map_open name = anon ("name" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
       fun () ->
-        let tree = Codegen.load_tree name in
-        Db_codegen.write_crud_queries name tree ;
-        Db_codegen.write_migration_scripts name)
+        let tree = Codegen.load_tree ~model_path in
+        Db_codegen.write_queries ~model_path ~tree ;
+        Migrations_codegen.write_migration_scripts ~model_path)
 
 let generate_controller =
   Command.basic ~summary:"Generate CRUD controller code for a model"
     Command.Let_syntax.(
-      let%map_open name = anon ("name" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
       fun () ->
-        let tree = Codegen.load_tree name in
-        Controller_codegen.write_controller name tree)
+        let tree = Codegen.load_tree ~model_path in
+        Controller_codegen.write_controller ~model_path ~tree)
 
 let generate_scaffold =
   (* TODO - pluralise name *)
@@ -25,12 +25,12 @@ let generate_scaffold =
       "Currently just does `ocoi generate queries` and `ocoi generate \
        controller`.")
     Command.Let_syntax.(
-      let%map_open name = anon ("name" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
       fun () ->
-        let tree = Codegen.load_tree name in
-        Db_codegen.write_crud_queries name tree ;
-        Db_codegen.write_migration_scripts name ;
-        Controller_codegen.write_controller name tree)
+        let tree = Codegen.load_tree ~model_path in
+        Db_codegen.write_queries ~model_path ~tree ;
+        Migrations_codegen.write_migration_scripts ~model_path ;
+        Controller_codegen.write_controller ~model_path ~tree)
 
 let generate =
   Command.group ~summary:"Generate various kinds of code"

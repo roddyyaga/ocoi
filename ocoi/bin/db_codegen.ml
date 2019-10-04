@@ -153,96 +153,13 @@ let destroy (module Db : Caqti_lwt.CONNECTION) id =
   Ocoi.Db.handle_caqti_result result|ocaml}
     table_name
 
-let make_migration_or_rollback_script module_name operation =
-  Printf.sprintf
-    {ocaml|let%%lwt conn = Db.connection
-
-let result = Lwt_main.run (Queries.%s.%s conn)
-
-let () =
-  match result with
-  | Ok () -> print_endline "%s successful."
-  | Error err ->
-      print_endline "%s failed!" ;
-      failwith (Caqti_error.show err)|ocaml}
-    (String.capitalize module_name)
-    (* TODO - either migrate or rollback *)
-    operation operation
-
-(* TODO - factor getting queries_name etc. out *)
-let write_migration_script name script_suffix operation =
-  let open Filename in
-  let module_name = name |> chop_extension |> basename in
-  let queries_name =
-    concat (dirname name)
-      ("../db/migrate/" ^ module_name ^ script_suffix ^ ".ml")
+let write_queries ~model_path ~tree =
+  let module_name, dir = module_name_and_dir ~model_path in
+  let queries_path =
+    let ( / ) = Filename.concat in
+    dir / ".." / "queries" / (module_name ^ ".ml")
   in
-  let script_content =
-    make_migration_or_rollback_script module_name operation
-  in
-  let oc = Out_channel.create queries_name in
-  Printf.fprintf oc "%s\n" script_content ;
-  Out_channel.close oc
-
-module Suffixes = struct
-  let migrate = "_migrate"
-
-  let rollback = "_rollback"
-end
-
-let write_new_migrations_dune ~module_name ~dune_path =
-  let dune_content =
-    Printf.sprintf
-      {dune|(executables
-(names %s %s)
-(libraries models db)
-(preprocess (pps lwt_ppx)))|dune}
-      (module_name ^ Suffixes.migrate)
-      (module_name ^ Suffixes.rollback)
-  in
-  let oc = Out_channel.create dune_path in
-  Printf.fprintf oc "%s\n" dune_content ;
-  Out_channel.close oc
-
-let update_migrations_dune ~module_name ~dune_path =
-  let dune_lines = In_channel.read_lines dune_path in
-  (* Should be "(names model1_migrate model1_rollback ...)" *)
-  let names_line = List.nth_exn dune_lines 1 in
-  let chopped = String.chop_suffix_exn names_line ~suffix:")" in
-  let new_names_line =
-    String.concat
-      [ chopped;
-        module_name ^ Suffixes.migrate;
-        " ";
-        module_name ^ Suffixes.rollback;
-        ")" ]
-  in
-  let new_lines =
-    List.hd_exn dune_lines :: new_names_line :: List.slice dune_lines 2 0
-  in
-  let dune_content = String.concat ~sep:"\n" new_lines in
-  let oc = Out_channel.create dune_path in
-  Printf.fprintf oc "%s\n" dune_content ;
-  Out_channel.close oc
-
-let create_or_update_migrate_dune name =
-  let module_name = Filename.(name |> chop_extension |> basename) in
-  let dune_path = Filename.(concat (dirname name) "../db/migrate/dune") in
-  match Sys.file_exists dune_path with
-  | `Yes -> update_migrations_dune ~module_name ~dune_path
-  | `No -> write_new_migrations_dune ~module_name ~dune_path
-  | `Unknown -> failwith "Migrations dune file has unknown status"
-
-let write_migration_scripts name =
-  write_migration_script name Suffixes.migrate "Migration" ;
-  write_migration_script name Suffixes.rollback "Rollback" ;
-  create_or_update_migrate_dune name
-
-let write_crud_queries name tree =
-  let open Filename in
-  let queries_name = concat (dirname name) ("../queries/" ^ basename name) in
-  let oc = Out_channel.create queries_name in
-  let module_name = name |> chop_extension |> basename in
+  let oc = Out_channel.create queries_path in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
@@ -254,11 +171,11 @@ let write_crud_queries name tree =
       make_destroy_code module_name ]
   in
   let module_open_statement = "open Models." ^ String.capitalize module_name in
-  let crud_queries_string =
+  let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in
   let migration_queries =
     make_migration_code module_name resource_attributes
   in
-  Printf.fprintf oc "%s\n%s\n" crud_queries_string migration_queries ;
+  Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries ;
   Out_channel.close oc

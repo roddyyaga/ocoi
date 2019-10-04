@@ -1,4 +1,0 @@
-(executables
-(names todo)
-(libraries models db)
-(preprocess (pps lwt_ppx)))
