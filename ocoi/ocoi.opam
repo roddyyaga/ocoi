@@ -11,16 +11,23 @@ depends: [
   "dune"
   "core"
   "lwt"
-  "lwt.unix"
   "opium"
-  "ppx_deriving_yojson.runtime"
+  "ppx_deriving_yojson"
   "caqti"
   "caqti-lwt"
   "caqti-driver-postgresql"
   "lwt_ppx"
-  "compiler-libs.common"
   "fileutils"
   "lwt_ppx"
 ]
-build: ["dune" "build" "-p" name "-j" jobs]
+build: [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@doc" {with-doc}
+]
 dev-repo: "git+https://github.com/roddyyaga/ocoi.git"
