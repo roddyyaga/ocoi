@@ -1,9 +1,7 @@
 # OCaml On Ice
-
-OCaml On Ice is a web framework in the style of Ruby on Rails or Django, but in OCaml. At the moment it is an
-extension of [Opium](https://github.com/rgrinberg/opium) plus some code generation tools. It is designed primarily for
-building REST APIs. In particular, it should work well for REST APIs that are consumed by ReasonML frontends (for
-instance it should be simple to share code between frontend and backend with that setup).
+OCaml On Ice is a web framework in the style of Ruby on Rails, built on top of
+[Opium](https://github.com/rgrinberg/opium). It is designed for building REST APIs, espeically ones that are consumed by
+BuckleScript or js\_o\f_ocaml frontends.
 
 ## Tutorial
 The classic web framework tutorial -- building a todo app. It should make sense even if you don't know any OCaml or web
@@ -12,13 +10,8 @@ development. As well as a list of steps and general notes, this tutorial contain
 frameworks respectively.
 
 ### Installation
-Ice has only been tested on Linux (Ubuntu) but should in theory work on any flavour of Unix. Dependencies are OCaml (developed with 4.07.0), PostgreSQL
-and inotify-tools (to automatically rebuild/restart the server when source files change).
-Build and install from source (it's not on OPAM yet):
-```
-$ dune build @install && dune install
-```
-Check the install worked:
+Ice isn't on OPAM yet as it relies on the master version of Opium. You can install it with `git clone git@github.com:roddyyaga/ocoi.git && cd ocoi/ocoi && opam install .`. It also depends on PostgreSQL and [inotify-tools](https://github.com/rvoicilas/inotify-tools/wiki).
+To check the install worked:
 ```
 $ ocoi version
 ```
@@ -157,8 +150,3 @@ And Delete:
 ```
 $ http delete localhost:3000/todos/1
 ```
-
-## Dependencies
-OCaml On Ice uses Jane Street's Core as a standard library, Opium for handling requests and Caqti for accessing a
-database. Currently Caqti code generation targets Postgresql. The non-OCaml dependencies are postgres and inotify-tools
-(the latter is only needed to run the server through the `ocoi` CLI, you can start it manually without it).

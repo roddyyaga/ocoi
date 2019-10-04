@@ -1,0 +1,5 @@
+{0 OCaml On Ice}
+OCaml On Ice is a web framework in the style of Ruby on Rails, built on top of {{: https://github.com/rgrinberg/opium}
+Opium}. It is designed for building REST APIs, especially those that are consumed by BuckleScript or js_of_ocaml frontends.
+
+There is a guide to using it in the {{: https://github.com/roddyyaga/ocoi} GitHub README} and reference documentation here {!module:Ocoi}.
