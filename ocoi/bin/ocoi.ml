@@ -4,7 +4,7 @@ let generate_queries =
   (* TODO - fill out readmes *)
   Command.basic ~summary:"Generate CRUD DB code for a model"
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
         Db_codegen.write_queries ~model_path ~tree ;
@@ -13,7 +13,7 @@ let generate_queries =
 let generate_controller =
   Command.basic ~summary:"Generate CRUD controller code for a model"
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
         Controller_codegen.write_controller ~model_path ~tree)
@@ -25,7 +25,7 @@ let generate_scaffold =
       "Currently just does `ocoi generate queries` and `ocoi generate \
        controller`.")
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
         Db_codegen.write_queries ~model_path ~tree ;
@@ -51,12 +51,46 @@ let new_ =
         in
         FileUtil.cp ~recurse:true [template_directory_name] name)
 
+let migrate =
+  Command.basic ~summary:"Run DB migrations for a model"
+    ~readme:(fun () ->
+      "This should be called from the `app` directory. It just builds and \
+       runs the relevant file in `app/db/migrate`.")
+    Command.Let_syntax.(
+      let%map_open name = anon ("model" %: Filename.arg_type) in
+      (* TODO - check if file exists *)
+      fun () ->
+        let _ =
+          Sys.command
+            (Printf.sprintf "dune exec -- ./db/migrate/%s_migrate.exe" name)
+        in
+        ())
+
+let rollback =
+  Command.basic ~summary:"Run DB rollback for a model"
+    ~readme:(fun () ->
+      "This should be called from the `app` directory. It just builds and \
+       runs the relevant file in `app/db/migrate`.")
+    Command.Let_syntax.(
+      let%map_open name = anon ("model" %: Filename.arg_type) in
+      (* TODO - check if file exists *)
+      fun () ->
+        let _ =
+          Sys.command
+            (Printf.sprintf "dune exec -- ./db/migrate/%s_rollback.exe" name)
+        in
+        ())
+
+let db =
+  Command.group ~summary:"Run DB migrations or rollbacks"
+    [("migrate", migrate); ("rollback", rollback)]
+
 let server =
   Command.basic ~summary:"Run an OCOI app, rebuilding when files are changed"
     ~readme:(fun () ->
-      "This should be called from the app directory. It uses `main.ml` as an \
-       entry point. It is implemented by rerunning `dune exec -- ./main.exe` \
-       when inotifywait detects changes.")
+      "This should be called from the `app` directory. It uses `main.ml` as \
+       an entry point. It is implemented by rerunning `dune exec -- \
+       ./main.exe` when inotifywait detects changes.")
     (Command.Param.return (fun () ->
          let () = print_endline "Starting server" in
          let server = Server.start_server () in
@@ -93,6 +127,6 @@ let server =
 
 let command =
   Command.group ~summary:"Run OCOI commands"
-    [("generate", generate); ("new", new_); ("server", server)]
+    [("generate", generate); ("new", new_); ("server", server); ("db", db)]
 
 let () = Command.run command

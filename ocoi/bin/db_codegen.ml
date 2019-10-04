@@ -30,16 +30,15 @@ let generate_create_table_sql table_name resource_attributes =
         a.sql_name ^ " " ^ a.sql_type_name)
   in
   let body = String.concat ~sep:",\n" column_definitions in
-  Printf.sprintf {sql|CREATE TABLE %s (
-         %s
-         )
-    |sql}
-    table_name body
+  Printf.sprintf {sql| CREATE TABLE %s (
+%s
+       )
+    |sql} table_name
+    (Utils.indent body ~filler:' ' ~amount:9)
 
 (** Generate migrations code. *)
 let make_migration_code table_name resource_attributes =
   let query = generate_create_table_sql table_name resource_attributes in
-  (* TODO - make generated SQL indented nicely *)
   Printf.sprintf
     {ocaml|let migrate_query =
   Caqti_request.exec Caqti_type.unit
@@ -80,8 +79,8 @@ let make_show_code table_name resource_attributes =
   Caqti_request.find_opt Caqti_type.int
     Caqti_type.%s
     {sql| SELECT %s
-       FROM %s
-       WHERE id = (?)
+          FROM %s
+          WHERE id = (?)
     |sql}
 
 let show (module Db : Caqti_lwt.CONNECTION) id =
