@@ -11,7 +11,8 @@ depends: [
   "dune"
   "core"
   "lwt"
-  "opium"
+  "opium" {= "master"}
+  "opium_core" {= "master"}
   "ppx_deriving_yojson"
   "caqti"
   "caqti-lwt"
@@ -19,6 +20,10 @@ depends: [
   "lwt_ppx"
   "fileutils"
   "lwt_ppx"
+]
+pin-depends: [
+    [ "opium.master" "git+https://github.com/rgrinberg/opium.git" ]
+    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
 ]
 build: [
     "dune"
