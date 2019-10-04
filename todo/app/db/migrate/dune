@@ -1,0 +1,5 @@
+(executables
+(names todo_migrate todo_rollback)
+(libraries lwt
+           queries db)
+(preprocess (pps lwt_ppx)))

@@ -1,0 +1,4 @@
+(library
+(name db)
+(libraries ocoi)
+(preprocess (pps lwt_ppx)))

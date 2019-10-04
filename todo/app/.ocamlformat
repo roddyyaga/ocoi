@@ -1,0 +1,3 @@
+field-space = tight-decl
+break-separators = after
+break-cases = fit
