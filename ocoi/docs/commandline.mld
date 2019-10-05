@@ -1,0 +1,12 @@
+{0 OCaml On Ice commands}
+OCaml On Ice provides various commands that are useful when developing applications with it. This page gives an overview
+of the available commands. Further documentation can be found by doing [ocoi help] or [ocoi help COMMAND]. You can use
+any unique prefix of a command as an abbreviation, for example [ocoi g s my_model] is an alias for [ocoi generate
+scaffold my_model].
+
+- [ocoi new PROJECT_NAME] -- creates a directory [PROJECT_NAME] containing a skeleton project
+- [ocoi generate]
+  - [ocoi generate controller PATH_TO_MODEL]
+  - [ocoi generate queries PATH_TO_MODEL]
+  - [ocoi generate scaffold PATH_TO_MODEL]
+- [ocoi server]
