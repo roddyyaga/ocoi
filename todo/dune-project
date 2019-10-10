@@ -1,0 +1,26 @@
+(lang dune 1.11)
+(name app)
+(license MIT)
+(authors "Roddy MacSween <github@roddymacsween.co.uk>")
+(maintainers "Roddy MacSween <github@roddymacsween.co.uk>")
+(generate_opam_files true)
+
+(package
+(name app)
+(synopsis "An OCaml On Ice app")
+(depends
+dune
+core
+lwt
+lwt.unix
+caqti
+caqti-lwt
+caqti-driver-postgresql
+yojson
+ppx_deriving_yojson
+lwt_ppx
+(opium_core (= "master"))
+(opium (= "master"))
+ocoi
+)
+)
