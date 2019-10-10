@@ -16,12 +16,11 @@ core
 lwt
 (opium_core (= "master"))
 (opium (= "master"))
-ppx_deriving_yojson
 caqti
 caqti-lwt
 caqti-driver-postgresql
-lwt_ppx
 fileutils
 lwt_ppx
+ppx_deriving_yojson
 )
 )

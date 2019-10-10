@@ -12,7 +12,6 @@
 dune
 core
 lwt
-lwt.unix
 caqti
 caqti-lwt
 caqti-driver-postgresql
