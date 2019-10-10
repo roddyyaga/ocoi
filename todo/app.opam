@@ -37,6 +37,3 @@ pin-depends: [
     [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
     [ "ocoi.master" "git+https://github.com/roddyyaga/ocoi.git"]
 ]
-depexts: [
-  "postgresql-dev"
-]

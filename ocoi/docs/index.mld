@@ -6,6 +6,8 @@ Opium}. It is designed for building REST APIs, especially those that are consume
 - {{: https://github.com/roddyyaga/ocoi} Tutorial (in the README)}
 - {{!commandline} Commands documentation}
 - {{!module:Ocoi} Library reference}
+- {{!roadmap} Roadmap}
+- {{!knownissues} Known issues}
 
 {1 Other links}
 - {{: https://github.com/roddyyaga/ocoi} GitHub}
