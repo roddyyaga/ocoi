@@ -1,4 +1,4 @@
 {0 OCaml On Ice known issues}
 {1 [ocoi] command line tool}
 - Sometimes [ocoi server] fails to build even though a manual build works.
-  - Fix: restart the server
+  {ul {- Fix: restart the server}}

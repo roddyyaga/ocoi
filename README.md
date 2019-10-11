@@ -1,7 +1,8 @@
 # OCaml On Ice
 OCaml On Ice is a web framework in the style of Ruby on Rails, built on top of
 [Opium](https://github.com/rgrinberg/opium). It is designed for building REST APIs, espeically ones that are consumed by
-BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyyaga.github.io/ocoi/ocoi/index.html).
+BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyyaga.github.io/ocoi/ocoi/index.html). The
+design philosophy page and glossary may be useful to read as an introduction.
 
 ## Tutorial
 The classic web framework tutorial -- building a todo app. It should make sense even if you don't know any OCaml or web
@@ -23,7 +24,7 @@ $ ocoi new todo
 ```
 This will produce directories and files like this:
 ```
-/todo
+todo
     /app
         /models
             dune
@@ -89,7 +90,6 @@ between requests to the API and database operations or other things on the model
 
 ### Using the todo resource
 #### Creating handlers for CRUD operations
-TODO - explanation about controllers
 Edit `main.ml` to register the CRUD operations from the todo controller by changing it to this:
 ```ocaml
 open Core

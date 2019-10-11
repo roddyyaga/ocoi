@@ -1,0 +1,43 @@
+{0 Design philosophy}
+OCaml On Ice's design borrows a lot from Ruby on Rails. This applies both to its abstract principles such as using
+sensible defaults to minimise boilerplate and speed up development, and to specifics such as the project directory
+structure and names of [ocoi] commands. However, it does differ from Rails and similar frameworks in several significant
+ways, which are discussed below.
+
+{1 No ORM}
+Unlike most modern web frameworks, Ice doesn't have an ORM. Instead it uses code generation to avoid the need to write
+repetitive SQL queries for CRUD operations by hand. There are various reasons for this choice. Some of them are
+consequences of using OCaml, for instance it would be odd to use an {i Object}-Relational Mapping in a language where
+classes are usually a anti-pattern. Others are more general, for instance those described in the classic blog post {{:
+http://blogs.tedneward.com/post/the-vietnam-of-computer-science/} The Vietnam of Computer Science}.
+
+{1 For APIs}
+Frameworks such as Rails and Django are primarily designed for building apps with a Model-View-Controller structure,
+where the views are template files that are filled in by controllers and turned into HTML by the server. This produces
+apps where the frontend and backend are tightly integrated.
+
+In comparison, Ice is designed for building REST APIs that are then consumed by one or more frontends, with the full
+application being a combination of the Ice backend and loosely integrated frontends. So while it still has the concepts
+of models and controllers, you do not explicitly define views (the functionality of the View layer in MVC is spread
+between the frontend, Ice library code, user controller code and user "model" code).
+
+Furthermore, it is specifically designed for building APIs to be used by frontends written in OCaml (for instance using
+ReasonML/BuckleScript or js_of_ocaml) with some code shared between backend and frontend. This means that models and
+controllers in an Ice app don't correspond exactly to the Model and Controller layers of MVC. For instance, the database
+interfacing parts of a Model are implemented in the [app/queries] directory in Ice not [app/models] (since they are
+irrelevant to frontend code) and conversely a model in [app/models] will implement JSON serialisation even though that
+doesn't really belong in a Model (since it is also needed in frontend code).
+
+Similarly, Rails and Django include functionality for serving static content. Ice doesn't have this; in cases where
+it does make sense to serve static content from a server that is also providing an API you can do it manually with
+Opium, but typically it should be served from a dedicated source (e.g. another server or a CDN).
+
+{1 Deploying Ice apps}
+Since OCaml is a compiled language that isn't widely used for building web apps, deploying Ice projects is different in
+various ways from deploying ones that use popular interpreted languages like Ruby and Python. Deploying an Ice app is a
+two-step process. First it must be built, which means compiling the entry point [main.ml] into an executable. This
+executable is the server, which can then be deployed somewhere (potentially behind a load balancer or similar, and
+probably accompanied by a Postgresql database). This can
+be done natively but Ice projects also support doing both steps in Docker. Building is done using [dune] and if building
+with Docker the dependencies are managed with [opam]. The actual server functionality is implemented by Opium which uses
+cohttp and lwt, but this could change in the future.

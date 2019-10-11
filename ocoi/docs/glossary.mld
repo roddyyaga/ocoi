@@ -1,0 +1,35 @@
+{0 OCaml On Ice glossary}
+This page defines various terms used in this documentation. See the {{!designphilosophy} design philosophy} page for
+further explanation.
+
+{1 Controller}
+A "controller" is a source code file/module in the [app/controllers] file. Unlike models, controllers have almost
+exactly the same role as in MVC frameworks like Rails: they are the interface layer between requests/response to/from
+the server and database operations on models. For example, a controller might respond to a "create user" request by
+calling the query that adds a new user to the database and returning the created id.
+
+{1 Handler}
+A "handler" is a function that is called on the Opium app in [app/main.ml] that specifies how the server responds to
+requests to different URLs with different request methods. Ice provides ways to automatically create handlers from
+controllers.
+
+{1 Migration}
+A "migration" is a script in [app/db/migrate] that can be used to either create or destroy the table for a model.
+
+{1 Model}
+A "model" is either a source code file/module in the [app/models] file or a record type [t] defined at the top of some
+such file (which should one should be clear from context). These define entities (for instance a user, or a blog post)
+and business logic that involves them. Model code is intended to be shareable with frontends written in OCaml (probably
+compiled to JavaScript). A model will have a corresponding controller, and typically also associated database queries.
+Ice models are similar to the models in the MVC architecture and frameworks such as Rails but not exactly the same.
+
+{1 Opium}
+{{: https://github.com/rgrinberg/opium} Opium} is the lightweight web framework that Ice is built on top of.
+
+{1 Query}
+A "query" is a database operation associated with a model (for instance creating a new user in the database) in a file
+in [app/queries]. In an MVC framework these would be part of the model, but that's not the case here. Currently queries
+are implemented using the Caqti library and PostgreSQL.
+
+{1 Resource}
+A "resource" is the combination of a model and associated code, i.e. its controller, queries and migrations.

@@ -1,2 +1,46 @@
 {0 OCaml On Ice project structure}
-This page describes the 
+{1 Example project structure}
+{[
+myproject
+    /app
+        /models
+            mymodel.ml
+        /controllers
+            mymodel.ml
+        /queries
+            mymodel.ml
+        /db
+            /migrate
+                mymodel_migrate.ml
+                mymodel_rollback.ml
+            db.ml
+        .ocamlformat
+        main.ml
+    Dockerfile
+    dune-project
+    app.opam.template
+]}
+
+A project will also contain various [dune] files in [app] and subdirectories, and generated files (for instance
+[app.opam] in the project root directory).
+
+{1 Explanations}
+{2 [myproject/app]}
+The [app] directory contains all of the OCaml source files for the project.
+{3 [myproject/app/main.ml]}
+The entrypoint for the project, compiled to an executable which is the server used in development and production.
+
+{3 [myproject/app/.ocamlformat]}
+A file that specifies the code style enforced by the [ocamlformat] tool when used on source code in the project.
+
+{3 Subdirectories of [myproject/app]}
+The role of the [models], [controllers], [queries] and [db/migrate] subdirectories is described in the {{!glossary}
+glossary}. Note that code in the root of the [db] directory (rather than its [migrate] subdirectory) contains details about
+connecting to the database, not resource queries.
+
+{2 [myproject/Dockerfile]}
+The Dockerfile specifies how to build the project using docker, resulting in an image that can be deployed.
+
+{2 Other files in [myproject]}
+Other files in the root of the [myproject] directory such as [dune-project] and [app.opam.template] are used for
+building the project in Docker, although they could also be used for local dependency management.

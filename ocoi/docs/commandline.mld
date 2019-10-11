@@ -1,23 +1,44 @@
 {0 OCaml On Ice commands}
-OCaml On Ice provides various commands that are useful when developing applications with it. This page gives an overview
-of the available commands. Further documentation can be found by doing [ocoi help] or [ocoi help COMMAND]. You can use
+OCaml On Ice provides a command line tool [ocoi] to help build applications. This page gives an overview
+of its commands. Further documentation can be found by doing [ocoi help] or [ocoi help COMMAND]. You can use
 any unique prefix of a command as an abbreviation, for example [ocoi g s my_model] is an alias for [ocoi generate
 scaffold my_model].
 
 {1 Commands reference}
-- [ocoi new PROJECT_NAME] - creates a directory [PROJECT_NAME] containing a skeleton project
-- [ocoi generate] - generates various kinds of code for models
-  - [ocoi generate controller PATH_TO_MODEL] - given a path to some file [mymodel.ml] in [app/models], generates a
-    controller implementing basic CRUD functionality for it in [app/controllers/mymodel.ml]. The generated Crud module must be registered (connected to Opium) to be used. See
-    (!module:Ocoi.Controllers) for more details.
-  - [ocoi generate queries PATH_TO_MODEL] - given a path to some file [mymodel.ml] in [app/models], generates Postgresql
-    queries implementing basic CRUD functionality for it in [app/queries/mymodel.ml] and associated migration and
-    rollback scripts in [app/db/migrate].
-  - [ocoi generate scaffold PATH_TO_MODEL] - run [ocoi generate controller] and [ocoi generate queries] for a model.
-- [ocoi server] - builds the app, starts it as a server (on port 3000) and starts watching for changes. When a file is
-  changed, rebuilds and restarts the server. Should be run from the [app] directory.
-- [ocoi db] - run database migrations for a model. Should be run from the [app] directory.
-  - [ocoi db migrate MODEL] - given the name of a model [mymodel] (not a path as for [ocoi generate]), build and run the
-    migration script [app/db/migrate/mymodel_migrate.ml] that creates the table used by the model.
-  - [ocoi db rollback MODEL] - given the name of a model [mymodel], build and run the rollback script
-    [app/db/migrate/mymodel_rollback.ml] that deletes the table used by the model.
+{2 [ocoi new PROJECT_NAME]}
+Creates a directory [PROJECT_NAME] containing a skeleton project.
+
+{2 [ocoi generate]}
+Generates various kinds of code from models.
+
+{3 [ocoi generate controller PATH_TO_MODEL]}
+Given a path to some file [mymodel.ml] in [app/models], generates a controller implementing basic CRUD functionality for
+it in [app/controllers/mymodel.ml]. The generated {!module-type:Ocoi.Controllers.Crud} module must be registered (connected to
+Opium) to be used.
+
+{3 [ocoi generate queries PATH_TO_MODEL]}
+Given a path to some file [mymodel.ml] in [app/models], generates Postgresql queries implementing basic CRUD
+functionality for it in [app/queries/mymodel.ml] and associated migration and rollback scripts in [app/db/migrate].
+
+{3 [ocoi generate scaffold PATH_TO_MODEL]}
+Shortcut that runs both [ocoi generate controller] and [ocoi generate queries] for a model.
+
+{2 [ocoi server]}
+Builds the app, starts it as a server (on port 3000) and starts watching for changes. When a file is changed, rebuilds
+and restarts the server. Should be executed in the [app] directory. This shouldn't be used in production (since there
+should be no need to rebuild the app or even have the source code in the production environment) although the underlying
+[main.exe] executable will be used in production deployments.
+
+{2 [ocoi db]}
+Performs database migrations or rollbacks for a model. Should be executed in the [app] directory.
+
+{3 [ocoi db migrate MODEL]}
+Given the name of a model [mymodel] (not a path as for [ocoi generate]), builds and runs the migration script
+[app/db/migrate/mymodel_migrate.ml] that creates the table used by the model.
+
+{3 [ocoi db rollback MODEL]}
+Given the name of a model [mymodel], builds and run the rollback script [app/db/migrate/mymodel_rollback.ml] that
+deletes the table used by the model.
+
+{2 [ocoi help]}
+Lists [ocoi] commands. Can be used with a command as an argument to give help for it.

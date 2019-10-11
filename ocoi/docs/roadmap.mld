@@ -4,5 +4,6 @@ Various minor possible improvements are listed in the source code in [TODO] comm
 - Code generation for integrated ReasonML/React frontend projects
 - Setup for building and deploying Ice projects with Docker
 - More documentation:
-  - More detailed tutorials, aimed at different audiences
-  - Explanation of Ice terminology and concepts
+{ul {- More detailed tutorials, aimed at different audiences}
+    {- Explanation of Ice terminology and concepts}
+}
