@@ -5,9 +5,9 @@ open Opium.Std
 (** Represents Create, Read, Update and Delete operations on some model [t]
 
     Example use:
-        Given a model [type t = {id: int; title: string; completed: bool} [@@deriving yojson]] defined in
-        [models/todo.ml] with CRUD functionality for the database implemented in [queries/todo.ml], you would define a module in [controllers/todo.ml] with this signature like so:
-    {[module Crud : Ocoi.Controllers.Crud = struct
+    Given a model [type t = {id: int; title: string; completed: bool} [@@deriving yojson]] defined in
+    [models/todo.ml] with CRUD functionality for the database implemented in [queries/todo.ml], you would define a module in [controllers/todo.ml] with this signature like so:
+{[module Crud : Ocoi.Controllers.Crud = struct
   include Models.Todo
 
   let create json =
