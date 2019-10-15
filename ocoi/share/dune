@@ -1,5 +1,9 @@
 (install
 (files
+(project_template/app.opam.template as project_template/app.opam.template)
+(project_template/docker-compose.yml as project_template/docker-compose.yml)
+(project_template/dune-project as project_template/dune-project)
+(project_template/Dockerfile as project_template/Dockerfile)
 (project_template/app/dune as project_template/app/dune)
 (project_template/app/dune-project as project_template/app/dune-project)
 (project_template/app/main.ml as project_template/app/main.ml)
