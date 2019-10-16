@@ -1,8 +1,8 @@
 # OCaml On Ice
 OCaml On Ice is a web framework in the style of Ruby on Rails, built on top of
 [Opium](https://github.com/rgrinberg/opium). It is designed for building REST APIs, espeically ones that are consumed by
-BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyyaga.github.io/ocoi/ocoi/index.html). The
-design philosophy page and glossary may be useful to read as an introduction.
+BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyyaga.github.io/ocoi/ocoi/index.html). See the
+design philosophy page, glossary and the tutorial below for a further introduction. 
 
 ## Tutorial
 The classic web framework tutorial -- building a todo app. It should make sense even if you don't know any OCaml or web
