@@ -1,5 +1,0 @@
-pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "ocoi.master" "git+https://github.com/roddyyaga/ocoi.git"]
-]

@@ -1,9 +1,0 @@
-(executable
-(name main)
-(public_name main)
-(libraries opium yojson
-           ocoi
-           models controllers)
-(preprocess (pps lwt_ppx))
-(package app)
-)
