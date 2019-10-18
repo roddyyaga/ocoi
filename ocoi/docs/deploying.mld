@@ -1,0 +1,3 @@
+{0 Deploying OCaml On Ice apps}
+Ice apps can be deployed either natively or in Docker. Native deployment simply involves building using [dune build
+@install] which produces an executable [main.exe] that is the server. Deployment using docker

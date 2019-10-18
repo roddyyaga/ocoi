@@ -69,15 +69,17 @@ let migrate =
 let rollback =
   Command.basic ~summary:"Run DB rollback for a model"
     ~readme:(fun () ->
-      "This should be called from the `app` directory. It just builds and \
-       runs the relevant file in `app/db/migrate`.")
+      "This should be called from the root project directory (the one \
+       containing `app`). It just builds and runs the relevant file in \
+       `app/db/migrate`.")
     Command.Let_syntax.(
       let%map_open name = anon ("model" %: Filename.arg_type) in
       (* TODO - check if file exists *)
       fun () ->
         let _ =
           Sys.command
-            (Printf.sprintf "dune exec -- ./db/migrate/%s_rollback.exe" name)
+            (Printf.sprintf "dune exec -- ./app/db/migrate/%s_rollback.exe"
+               name)
         in
         ())
 
@@ -88,9 +90,10 @@ let db =
 let server =
   Command.basic ~summary:"Run an OCOI app, rebuilding when files are changed"
     ~readme:(fun () ->
-      "This should be called from the `app` directory. It uses `main.ml` as \
-       an entry point. It is implemented by rerunning `dune exec -- \
-       ./main.exe` when inotifywait detects changes.")
+      "This should be called from the root project directory (the one \
+       containing `app`). It uses `main.ml` as an entry point. It is \
+       implemented by rerunning `dune exec -- ./app/main.exe` when \
+       inotifywait detects changes.")
     (Command.Param.return (fun () ->
          let () = print_endline "Starting server" in
          let server = Server.start_server () in

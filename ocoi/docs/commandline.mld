@@ -25,12 +25,12 @@ Shortcut that runs both [ocoi generate controller] and [ocoi generate queries] f
 
 {2 [ocoi server]}
 Builds the app, starts it as a server (on port 3000) and starts watching for changes. When a file is changed, rebuilds
-and restarts the server. Should be executed in the [app] directory. This shouldn't be used in production (since there
+and restarts the server. Should be executed in root project directory. This shouldn't be used in production (since there
 should be no need to rebuild the app or even have the source code in the production environment) although the underlying
 [main.exe] executable will be used in production deployments.
 
 {2 [ocoi db]}
-Performs database migrations or rollbacks for a model. Should be executed in the [app] directory.
+Performs database migrations or rollbacks for a model. Should be executed in the root project directory.
 
 {3 [ocoi db migrate MODEL]}
 Given the name of a model [mymodel] (not a path as for [ocoi generate]), builds and runs the migration script

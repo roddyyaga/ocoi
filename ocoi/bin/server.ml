@@ -50,7 +50,8 @@ let watch_file_descr_output descr ~f ~channel_finished =
  * and asynchronously print its stdout and stderr and watch for its termination status *)
 let start_server () =
   let result =
-    Unix.create_process ~prog:"dune" ~args:["exec"; "--"; "./main.exe"; "-d"]
+    Unix.create_process ~prog:"dune"
+      ~args:["exec"; "--"; "./app/main.exe"; "-d"]
   in
   let () = print_endline "Server built and started" in
   let () =

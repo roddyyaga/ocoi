@@ -1,6 +1,6 @@
 (executable
 (name main)
-(libraries opium yojson
+(libraries opium yojson logs logs.fmt
            ocoi
            models controllers)
 (preprocess (pps lwt_ppx))
