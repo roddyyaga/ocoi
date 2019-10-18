@@ -19,4 +19,4 @@ let default_logger =
     Logs.info (fun m -> m "Responded with %s" code) ;
     response
   in
-  Rock.Middleware.create ~name:"Default Ice logger" ~filter
+  Rock.Middleware.create ~name:"Ice default logger" ~filter
