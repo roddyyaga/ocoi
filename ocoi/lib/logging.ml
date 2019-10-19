@@ -1,4 +1,6 @@
 open Core
+(** Defines various loggers for Ice apps. *)
+
 open Lwt.Infix
 open Opium.Std
 

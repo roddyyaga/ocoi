@@ -20,6 +20,8 @@ depends: [
   "fileutils"
   "lwt_ppx"
   "ppx_deriving_yojson"
+  "jwt"
+  "base64"
 ]
 build: [
   ["dune" "subst"] {pinned}
