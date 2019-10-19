@@ -1,5 +1,6 @@
 (executable
 (name main)
+(public_name main)
 (libraries opium yojson logs logs.fmt
            ocoi
            models controllers)
