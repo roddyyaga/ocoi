@@ -7,8 +7,10 @@ The best way to get started with OCaml On Ice is following the {{: https://githu
 README) and reading the {{!designphilosophy} design philosophy} page and {{!glossary} glossary}.
 
 {1 Documentation}
+{2 Reference}
 - {{!commandline} Commands documentation}
 - {{!module:Ocoi} Library reference}
+{2 Other}
 - {{!designphilosophy} Design philosophy}
 - {{!glossary} Glossary}
 - {{!projectstructure} Project structure reference}

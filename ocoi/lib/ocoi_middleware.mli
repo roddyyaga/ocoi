@@ -1,7 +1,7 @@
-open Core
-(** Defines Opium middlewares for use in Ice apps. *)
+(** Defines Opium middlewares for use in Ice apps *)
 
 open Opium.Std
+open Core
 
 val allow_cors :
   ?origin:string -> ?methods:string sexp_list -> unit -> Rock.Middleware.t

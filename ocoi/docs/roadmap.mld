@@ -1,9 +1,7 @@
 {0 OCaml On Ice roadmap}
-Various minor possible improvements are listed in the source code in [TODO] comments. Some larger planned features:
+Various minor possible improvements are listed in the source code in [TODO] comments. Others will likely occur or be planned as I use the framework. Some larger planned features:
 - Types and query/controller generation to specify relationships between models
 - Code generation for integrated ReasonML/React frontend projects
-- Setup for building and deploying Ice projects with Docker
-- More documentation:
-{ul {- More detailed tutorials, aimed at different audiences}
-    {- Explanation of Ice terminology and concepts}
-}
+- Allowing deployment with FastCGI rather than as a standalone server
+
+Contributions are very welcome!

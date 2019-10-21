@@ -1,4 +1,4 @@
-(** Provides functionality for defining Ice controllers and registering them with an Opium app. *)
+(** Provides functionality for defining Ice controllers and registering them with an Opium app *)
 
 open Opium.Std
 

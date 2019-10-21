@@ -1,4 +1,4 @@
-(** Utility functions for handling requests to an Opium app. *)
+(** Utility functions for handling requests to an Opium app *)
 
 open Opium.Std
 
