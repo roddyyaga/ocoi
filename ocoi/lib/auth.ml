@@ -48,5 +48,5 @@ module Checks = struct
       | Jwt_utils.SignatureMismatch -> false
       | Jwt_utils.FormatError -> false
     in
-    token_check
+    bearer_only token_check
 end

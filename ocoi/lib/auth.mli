@@ -18,10 +18,15 @@
     let req_id = param req "id" in
     jwt_user = req_id
 
+  let auth_func =
+    let token_check =
+      Ocoi.Auth.Checks.jwt ~algorithm:jwt_algorithm ~validate:check_user
+    in
+    Ocoi.Auth.Checks.bearer_only token_check
 
   let get_user =
     get "/users/:id"
-      (Ocoi.Authentication.Checks.jwt_check ~algorithm:jwt_algorithm ~validate:check_user (fun _ ->
+      (authenticate auth_func (fun _ ->
            get_user (param req "id") |> respond'))]}
 
 *)
@@ -60,10 +65,10 @@ module Checks : sig
   val jwt :
     algorithm:Jwt.algorithm ->
     validate:(Jwt.payload -> Request.t -> bool) ->
-    string ->
+    auth_credential option ->
     Request.t ->
     bool
-  (** [jwt_check ~algorithm ~validate] defines a token check function for {!bearer_only}
+  (** [jwt_check ~algorithm ~validate] produces an auth check that uses JWT tokens
 
    It rejects requests with a JWT token that cannot be parsed or has an incorrect signature according to [algorithm], and validates other tokens against the request using [validate]. *)
 end
