@@ -39,7 +39,7 @@ After successfully installing Ice, executing these commands with a running Postg
 ```
 ocoi new todo &&
 cd todo &&
-echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml` &&
+echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml &&
 ocoi generate scaffold app/models/todo.ml &&
 ocoi db migrate todo &&
 sed -i 's!|> hello_world!|> Ocoi.Controllers.register_crud "/todos" (module Controllers.Todo.Crud)!g' app/main.ml &&
