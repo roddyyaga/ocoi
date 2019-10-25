@@ -89,3 +89,27 @@ val destroy_handler : string -> (int -> unit Lwt.t) -> Opium.App.builder
 val register_crud : string -> (module Crud) -> App.t -> App.t
 (** [register_crud "name" (module Crud) app] calls [index_handler], [show_handler], [update_handler] and [destroy_handler]
      on [app]. *)
+
+(* TODO - document these *)
+val create_request_fun :
+  string -> (Yojson.Safe.t -> int Lwt.t) -> Request.t -> Response.t Lwt.t
+
+val index_request_fun :
+  (unit -> 'a sexp_list Lwt.t) ->
+  ('a -> Yojson.Safe.t) ->
+  'b ->
+  Response.t Lwt.t
+
+val show_request_fun :
+  (int -> 'a option Lwt.t) ->
+  ('a -> Yojson.Safe.t) ->
+  Request.t ->
+  Response.t Lwt.t
+
+val update_request_fun :
+  ('a -> unit Lwt.t) ->
+  (Yojson.Safe.t -> ('a, string) result) ->
+  Request.t ->
+  Response.t Lwt.t
+
+val destroy_request_fun : (int -> unit Lwt.t) -> Request.t -> Response.t Lwt.t
