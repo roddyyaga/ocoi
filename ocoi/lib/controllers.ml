@@ -20,46 +20,46 @@ module type Crud = sig
   val destroy : int -> unit Lwt.t
 end
 
-let create_handler name (module Crud : Crud) =
+let create_handler name create =
   post name (fun req ->
       let%lwt json = App.json_of_body_exn req in
-      let%lwt id = Crud.create json in
+      let%lwt id = create json in
       Handler_utils.empty_created_response (name ^ Printf.sprintf "/%d" id))
 
-let index_handler name (module Crud : Crud) =
+let index_handler name index to_yojson =
   get name (fun _ ->
-      let%lwt resources = Crud.index () in
-      let resources_json = List.map resources ~f:Crud.to_yojson in
+      let%lwt resources = index () in
+      let resources_json = List.map resources ~f:to_yojson in
       `Json (`List resources_json) |> respond')
 
-let show_handler name (module Crud : Crud) =
+let show_handler name show to_yojson =
   get (id_path name) (fun req ->
-      let%lwt resource_opt = Crud.show (int_of_string (param req "id")) in
+      let%lwt resource_opt = show (int_of_string (param req "id")) in
       match resource_opt with
-      | Some resource -> `Json (resource |> Crud.to_yojson) |> respond'
+      | Some resource -> `Json (resource |> to_yojson) |> respond'
       | None -> `String "" |> respond' ~code:`Not_found)
 
-let update_handler name (module Crud : Crud) =
+let update_handler name update of_yojson =
   put name (fun req ->
       let%lwt json = App.json_of_body_exn req in
-      let resource_err = Crud.of_yojson json in
+      let resource_err = of_yojson json in
       match resource_err with
       | Ok resource ->
-          let%lwt () = Crud.update resource in
+          let%lwt () = update resource in
           empty_response `No_content
       (* TODO - make error message nicer *)
       | Error err ->
           respond_bad_request_400 ("(At least one) bad field: " ^ err))
 
-let destroy_handler name (module Crud : Crud) =
+let destroy_handler name destroy =
   delete (id_path name) (fun req ->
-      let%lwt () = Crud.destroy (int_of_string (param req "id")) in
+      let%lwt () = destroy (int_of_string (param req "id")) in
       empty_response `No_content)
 
 let register_crud name (module Crud : Crud) app =
-  app
-  |> create_handler name (module Crud)
-  |> show_handler name (module Crud)
-  |> update_handler name (module Crud)
-  |> destroy_handler name (module Crud)
-  |> index_handler name (module Crud)
+  let open Crud in
+  app |> create_handler name create
+  |> show_handler name show to_yojson
+  |> update_handler name update of_yojson
+  |> destroy_handler name destroy
+  |> index_handler name index to_yojson

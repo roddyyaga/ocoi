@@ -25,7 +25,7 @@ let make_controller_code module_name resource_attributes =
   let create_parameters = parameters_string (without_id resource_attributes) in
   let record_literal = record_names_string resource_attributes "; " in
   Printf.sprintf
-    {ocaml|conn = Db.connection
+    {ocaml|let conn = Db.connection
 
 module Crud : Ocoi.Controllers.Crud = struct
   include Models.%s

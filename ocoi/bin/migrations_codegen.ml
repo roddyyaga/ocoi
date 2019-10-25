@@ -95,7 +95,9 @@ let update_migrations_dune ~module_name ~dune_path =
       ~f:(fun w -> w <> rollback_name && w <> migrate_name)
       existing_names
   in
-  let new_names = filtered_names @ [migrate_name; rollback_name] in
+  let new_names =
+    ("names" :: filtered_names) @ [migrate_name; rollback_name]
+  in
   let new_names_line =
     Sexp.to_string (List.sexp_of_t String.sexp_of_t new_names)
   in

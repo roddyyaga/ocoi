@@ -1,5 +1,6 @@
 (** Provides functionality for defining Ice controllers and registering them with an Opium app *)
 
+open Core
 open Opium.Std
 
 (** Represents Create, Read, Update and Delete operations on some model [t]
@@ -54,23 +55,36 @@ module type Crud = sig
   (** [destroy id] deletes the model with id [id] from the database *)
 end
 
-val create_handler : string -> (module Crud) -> App.builder
-(** [app |> create_handler "name" (module Crud)] exposes [Crud.create] at [POST /name] *)
+val create_handler :
+  string -> (Yojson.Safe.t -> int Lwt.t) -> Opium.App.builder
+(** [app |> create_handler "name" Crud.create] exposes [Crud.create] at [POST /name] *)
 
-val index_handler : string -> (module Crud) -> App.builder
-(** [app |> index_handler "name" (module Crud)] exposes [Crud.index] at [GET /name] *)
+val index_handler :
+  string ->
+  (unit -> 'a sexp_list Lwt.t) ->
+  ('a -> Yojson.Safe.t) ->
+  Opium.App.builder
+(** [app |> index_handler "name" Crud.index Crud.to_yojson] exposes [Crud.index] at [GET /name] *)
 
-val show_handler : string -> (module Crud) -> App.builder
-(** [app |> show_handler "name" (module Crud)] exposes [Crud.show] at [GET /name/:id] *)
+val show_handler :
+  string ->
+  (int -> 'a option Lwt.t) ->
+  ('a -> Yojson.Safe.t) ->
+  Opium.App.builder
+(** [app |> show_handler "name" Crud.show to_yojson] exposes [Crud.show] at [GET /name/:id] *)
 
-val update_handler : string -> (module Crud) -> App.builder
-(** [app |> update_handler "name" (module Crud)] exposes [Crud.update] at [PUT /name]
+val update_handler :
+  string ->
+  ('a -> unit Lwt.t) ->
+  (Yojson.Safe.t -> ('a, string) result) ->
+  Opium.App.builder
+(** [app |> update_handler "name" Crud.update Crud.of_yojson] exposes [Crud.update] at [PUT /name]
 
     Note that this differs from the conventional location of [PUT /name/:id] for the Update operation of CRUD. This is
     because the ID of the new model will always be supplied in the body, so doesn't need to be put in the URL too. *)
 
-val destroy_handler : string -> (module Crud) -> App.builder
-(** [app |> destroy_handler "name" (module Crud)] exposes [Crud.destroy] at [Delete /name/:id] *)
+val destroy_handler : string -> (int -> unit Lwt.t) -> Opium.App.builder
+(** [app |> destroy_handler "name" Crud.destroy] exposes [Crud.destroy] at [Delete /name/:id] *)
 
 val register_crud : string -> (module Crud) -> App.t -> App.t
 (** [register_crud "name" (module Crud) app] calls [index_handler], [show_handler], [update_handler] and [destroy_handler]
