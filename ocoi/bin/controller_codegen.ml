@@ -24,8 +24,9 @@ let make_controller_code module_name resource_attributes =
   let queries_module = "Queries." ^ String.capitalize module_name in
   let create_parameters = parameters_string (without_id resource_attributes) in
   let record_literal = record_names_string resource_attributes "; " in
+  (* TODO - fix Lwt_main.run probably *)
   Printf.sprintf
-    {ocaml|let%%lwt conn = Db.connection
+    {ocaml|conn = Lwt_main.run Db.connection
 
 module Crud : Ocoi.Controllers.Crud = struct
   include Models.%s
