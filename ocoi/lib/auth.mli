@@ -1,14 +1,14 @@
-(** Implements authentication for requests on a per route basis using the [Authorization] HTTP header
+(** Implements authentication/authorization for requests on a per route basis using the [Authorization] HTTP header
 
     Example use:
     {[let my_route =
         get "/my_route"
-          (Ocoi.Authentication.Checks.accept_all (fun _ ->
+          (Ocoi.Auth.Checks.accept_all (fun _ ->
                `String "Hello world!" |> respond'))]}
 
     implements a very simple kind of "authentication" that accepts all requests to [/my_route].
 
-    A more useful example would replace {!Ocoi.Authentication.Checks.accept_all} with some other function with signature
+    A more useful example would replace {!Ocoi.Auth.Checks.accept_all} with some other function with signature
     [auth_credential option -> Request.t -> bool] that takes an [Authorization] head and returns whether it is valid for
     the associated request. For instance, using JWT tokens for authentication:
     {[let jwt_algorithm = Jwt.HS256 "SupaSekretKey"

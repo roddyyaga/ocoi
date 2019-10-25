@@ -1,7 +1,7 @@
 (** The OCaml On Ice library *)
 
 module App = App
-module Authentication = Authentication
+module Auth = Auth
 module Controllers = Controllers
 module Db = Db
 module Handler_utils = Handler_utils
