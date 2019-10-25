@@ -92,7 +92,7 @@ let update_migrations_dune ~module_name ~dune_path =
   in
   let filtered_names =
     List.filter
-      ~f:(fun w -> w = rollback_name || w = migrate_name)
+      ~f:(fun w -> w <> rollback_name && w <> migrate_name)
       existing_names
   in
   let new_names = filtered_names @ [migrate_name; rollback_name] in

@@ -176,12 +176,10 @@ let write_queries ~model_path ~tree =
       make_update_code table_name resource_attributes;
       make_destroy_code table_name ]
   in
-  let module_open_statement = "open Models." ^ String.capitalize table_name in
+  let module_open_statement = "open Models." ^ String.capitalize module_name in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in
-  let migration_queries =
-    make_migration_code module_name resource_attributes
-  in
+  let migration_queries = make_migration_code table_name resource_attributes in
   Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries ;
   Out_channel.close oc
