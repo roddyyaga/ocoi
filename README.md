@@ -18,7 +18,7 @@ $ ocoi version
     - Database schemas and queries
     - Controllers
   - Project scaffolding
-  - Development server that restarts when source files changed
+  - Development server that watches source code
 
 - Library (`Ocoi`):
   - Controller modules
@@ -37,11 +37,11 @@ $ ocoi version
 ### Example
 After successfully installing Ice, executing these commands with a running Postgres instance on `localhost:5432` with password `12345` gives an API that exposes CRUD functionality (Create Read Update Delete and Index) for the specified todo type on `localhost:3000/todos`.
 ```
-$ ocoi new todo
-$ cd todo
-$ echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml`
-$ ocoi generate scaffold app/models/todo.ml
-$ ocoi db migrate todo
-$ sed -i 's!|> hello_world!|> Ocoi.Controllers.register_crud "/todos" (module Controllers.Todo.Crud)!g' app/main.ml
-$ ocoi server
+ocoi new todo &&
+cd todo &&
+echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml` &&
+ocoi generate scaffold app/models/todo.ml &&
+ocoi db migrate todo &&
+sed -i 's!|> hello_world!|> Ocoi.Controllers.register_crud "/todos" (module Controllers.Todo.Crud)!g' app/main.ml &&
+ocoi server
 ```
