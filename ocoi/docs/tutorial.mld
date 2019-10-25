@@ -1,0 +1,144 @@
+{0 Tutorial}
+The classic web framework tutorial -- building a todo app.
+
+{1 Installation}
+Ice isn't on OPAM yet as it relies on the master build of Opium. See {{: https://github.com/roddyyaga/ocoi#readme} the
+readme} for details on how to install.
+
+{1 Creating a project}
+Use the [ocoi] command to create a new project:
+{v $ ocoi new todo v}
+
+This will produce a new directory [todo] containing a skeleton project with a structure described in the
+{{!projectstructure} project structure} page.
+
+In another terminal, go into the project directory and start the development server:
+{v $ cd todo && ocoi server v}
+
+Check that the server is up (on port 3000 by default) using {{: https://httpie.org/} HTTPie}:
+{v $ http localhost:3000
+HTTP/1.1 200 OK
+content-length: 33
+
+Hello world!
+
+from OCaml
+     Ice
+v}
+
+{1 Adding a resource}
+Next we will define a resource to represent todo items. In Ice this is done by defining a type in a file in the [models]
+directory:
+{v echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml v}
+We also use the deriving yojson plugin to automatically generate JSON (de)serialisation functions.
+
+Now we would like code that implements standard CRUD functionality (allowing todos to be Created, Read, Updated and
+Deleted) and then expose these operations as a REST API. Ice can generate this from the type in [models/todo.ml]:
+{v ocoi generate scaffold models/todo.ml v}
+This creates two new files called [todo.ml], one in [app/queries] and the other in [app/controllers]. The [queries] file
+contains queries that use the Caqti library to persist todos to a Postgresql database. The [controllers] file defines
+the interface between requests to the API and database operations or other model-layer things· Also, two files in
+[app/db/migrate] called [todo_migrate.ml] and [todo_rollback.ml] are created, which will be needed shortly.
+
+{1 Using the todo resource}
+{2 Creating handlers for CRUD operations}
+We now have code that implements CRUD operations for todos, but it is not exposed as an API yet. To do this, edit
+[app/main.ml] by changing it to this:
+
+{[open Core
+open Opium.Std
+open Controllers
+
+let hello_world =
+  get "/" (fun _ ->
+      `String "Hello world!\n\nfrom OCaml\n     Ice" |> respond')
+
+let _ =
+  let app = Ocoi.App.base in
+  let reporter = Logs_fmt.reporter () in
+  Logs.set_reporter reporter ;
+  Logs.set_level (Some Logs.Info) ;
+  let app =
+    app
+    |> Ocoi.Controllers.register_crud "/todos" (module Todo.Crud)
+  in
+  app |> App.run_command]}
+
+Check out the todos resource:
+{v $ http localhost:3000/todos v}
+
+You should get an error saying that the [todos] relation doesn't exist. This is expected because we haven't created the
+table for todos yet. This can be done by running the relevant migration:
+{v $ ocoi db migrate todo
+Migration successful. v}
+
+(You may instead get a [Connection failure] error, which means Postgres is not running. If you have docker installed you
+can start it with [docker run -t -p 5432:5432 -e POSTGRES_PASSWORD=12345 postgres].)
+
+Following the migration, doing
+{v $ http localhost:3000/todos v}
+should return an empty list (representing the zero todos that currently exist):
+{v $ http localhost:3000/todos
+HTTP/1.1 200 OK
+content-length: 2
+content-type: application/json
+
+[]
+
+v}
+
+The other CRUD operations also work.
+
+Create:
+{v $ http post localhost:3000/todos title="Complete me!" completed:=false
+HTTP/1.1 201 Created
+content-length: 0
+location: /todos/1 v}
+
+Read (a single instance):
+{v $ http get localhost:3000/todos/1
+HTTP/1.1 200 OK
+content-length: 49
+content-type: application/json
+
+{
+    "completed": false,
+    "id": 1,
+    "title": "Complete me!"
+} v}
+
+Read (multiple instances):
+{v $ http post localhost:3000/todos title="Complete me too!" completed:=false && http get localhost:3000/todos
+HTTP/1.1 200 OK
+content-length: 105
+content-type: application/json
+
+[
+    {
+        "completed": false,
+        "id": 2,
+        "title": "Complete me too!"
+    },
+    {
+        "completed": false,
+        "id": 1,
+        "title": "Complete me!"
+    }
+] v}
+
+Update:
+{v $ http put localhost:3000/todos id:=1 title="Complete me!" completed := true && http get localhost:3000/todos/1
+HTTP/1.1 200 OK
+content-length: 57
+content-type: application/json
+
+{
+    "completed": true
+    "title": "Complete me (edited)!",
+    "id": 1,
+} v}
+
+And Delete:
+{v $ http delete localhost:3000/todos/1 && http get localhost:3000/todos/1
+HTTP/1.1 404 Not Found
+content-length: 0 v}
