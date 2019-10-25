@@ -54,15 +54,16 @@ let new_ =
 let migrate =
   Command.basic ~summary:"Run DB migrations for a model"
     ~readme:(fun () ->
-      "This should be called from the `app` directory. It just builds and \
-       runs the relevant file in `app/db/migrate`.")
+      "This should be called from the root project directory (the one \
+       containing `app`). It just builds and runs the relevant file in \
+       `app/db/migrate`.")
     Command.Let_syntax.(
       let%map_open name = anon ("model" %: Filename.arg_type) in
       (* TODO - check if file exists *)
       fun () ->
         let _ =
           Sys.command
-            (Printf.sprintf "dune exec -- ./db/migrate/%s_migrate.exe" name)
+            (Printf.sprintf "dune exec -- ./app/db/migrate/%s_migrate.exe" name)
         in
         ())
 

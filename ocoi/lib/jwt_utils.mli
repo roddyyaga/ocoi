@@ -1,4 +1,9 @@
-(** Defines utilities for working with {{: https://jwt.io/introduction/} JWT tokens} *)
+(** Defines utilities for working with {{: https://jwt.io/introduction/} JWT tokens}
+
+    Note that [algorithm] in this code and documentation refers to the JWT algorithm type, which specifies the key used
+    for signatures as well as the choice of algorithm. Instances of it are created with [Jwt.HS256 "My secret key"]. *)
+
+open Core
 
 (** The result from verifying and decoding a JWT token
 
@@ -19,3 +24,11 @@ val verify_and_decode :
 (** [verify ~algorithm token_string] first parses [token_string] into a JWT token (or returns [FormatError] if this
      can't be done). It then verifies that the signature of the token is what it should be using the details in
      [algorithm], returning the payload of the token if it is and [SignatureMismatch] otherwise. *)
+
+val make_token : algorithm:Jwt.algorithm -> (string * string) list -> Jwt.t
+(** [make_token ~algorithm [(key1, value1); (key2, value2); ...]] creates a JWT token from a list of claims as key-value
+    tuples using some algorithm. *)
+
+val make_and_encode :
+  algorithm:Jwt.algorithm -> (string * string) sexp_list -> string
+(** [make_and_encode ~algorithm claims] calls [make_token ~algorithm claims] and encodes the result as a base64 string. *)

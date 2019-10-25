@@ -9,3 +9,6 @@ let indent s ~filler ~amount =
     List.map lines ~f:(fun line -> String.make amount filler ^ line)
   in
   String.concat ~sep:"\n" indented_lines
+
+(* TODO - implement more sophisticated pluralisation *)
+let pluralize word = word ^ "s"

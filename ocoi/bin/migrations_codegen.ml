@@ -27,9 +27,8 @@ end
 let make_migration_or_rollback_script module_name
     (module Operation : MigrateOperations.Operation) =
   Printf.sprintf
-    {ocaml|let%%lwt conn = Db.connection
-
-let result = Lwt_main.run (Queries.%s.%s conn)
+    {ocaml|
+let result = Lwt_main.run (Queries.%s.%s Db.connection)
 
 let () =
   match result with
@@ -82,14 +81,23 @@ let update_migrations_dune ~module_name ~dune_path =
   let dune_lines = In_channel.read_lines dune_path in
   (* Should be "(names model1_migrate model1_rollback ...)" *)
   let names_line = List.nth_exn dune_lines 1 in
-  let chopped = String.chop_suffix_exn names_line ~suffix:")" in
+  let existing_names =
+    List.tl_exn (List.t_of_sexp String.t_of_sexp (Sexp.of_string names_line))
+  in
+  let migrate_name =
+    migration_script_name module_name (module MigrateOperations.Migrate)
+  in
+  let rollback_name =
+    migration_script_name module_name (module MigrateOperations.Rollback)
+  in
+  let filtered_names =
+    List.filter
+      ~f:(fun w -> w = rollback_name || w = migrate_name)
+      existing_names
+  in
+  let new_names = filtered_names @ [migrate_name; rollback_name] in
   let new_names_line =
-    String.concat
-      [ chopped;
-        migration_script_name module_name (module MigrateOperations.Migrate);
-        " ";
-        migration_script_name module_name (module MigrateOperations.Rollback);
-        ")" ]
+    Sexp.to_string (List.sexp_of_t String.sexp_of_t new_names)
   in
   let new_lines =
     List.hd_exn dune_lines :: new_names_line :: List.slice dune_lines 2 0

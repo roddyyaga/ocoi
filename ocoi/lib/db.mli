@@ -1,4 +1,4 @@
-(** Defines various functions involving database access *)
+(** Defines various functions involving databases *)
 
 val handle_caqti_result : ('a, [< Caqti_error.t]) result Lwt.t -> 'a Lwt.t
 (** [handle_caqti_result query_result] returns the data in [query_result] if it succees or handles the error if not

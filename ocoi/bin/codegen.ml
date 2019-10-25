@@ -86,7 +86,7 @@ let parameters_string resource_attributes =
 let without_id resource_attributes =
   List.filter resource_attributes ~f:(fun a -> a.name <> "id")
 
-(** Get the resource_attribute respresenting ID from a list. *)
+(** Get the resource_attribute representing ID from a list. *)
 let get_id_attribute resource_attributes =
   List.find_exn resource_attributes ~f:(fun a -> a.name = "id")
 

@@ -1,6 +1,8 @@
 open Codegen
 open Core
 
+(* TODO - add tests *)
+
 (** Given a list of resource attributes, return a string "column_name1, column_name2, ..."
  * (note the lack of parentheses). *)
 let column_tuple_string resource_attributes =
@@ -15,7 +17,11 @@ let caqti_tuple_type_string resource_attributes =
   let length = List.length resource_attributes in
   let sep, inital_string =
     match length <= 4 with
-    | true -> (" ", Printf.sprintf "tup%d" length)
+    (* TODO - check length = 1 case *)
+    | true -> (
+      match length = 1 with
+      | true -> ("", "")
+      | false -> (" ", Printf.sprintf "tup%d" length) )
     | false -> (" & ", "let (&) = tup2 in")
   in
   let joined_types =
@@ -162,14 +168,15 @@ let write_queries ~model_path ~tree =
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
+  let table_name = Utils.pluralize module_name in
   let queries =
-    [ make_all_code module_name resource_attributes;
-      make_show_code module_name resource_attributes;
-      make_create_code module_name resource_attributes;
-      make_update_code module_name resource_attributes;
-      make_destroy_code module_name ]
+    [ make_all_code table_name resource_attributes;
+      make_show_code table_name resource_attributes;
+      make_create_code table_name resource_attributes;
+      make_update_code table_name resource_attributes;
+      make_destroy_code table_name ]
   in
-  let module_open_statement = "open Models." ^ String.capitalize module_name in
+  let module_open_statement = "open Models." ^ String.capitalize table_name in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in
