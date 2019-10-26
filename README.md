@@ -5,7 +5,7 @@ BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyya
 particular see the [tutorial](https://roddyyaga.github.io/ocoi/ocoi/tutorial.html) and [design philosophy](https://roddyyaga.github.io/ocoi/ocoi/designphilosophy.html).
 
 ## Installation
-Ice isn't on OPAM yet as it relies on the master version of Opium. You can install it with `git clone git@github.com:roddyyaga/ocoi.git && cd ocoi/ocoi && opam install .`. It also depends on PostgreSQL and [inotify-tools](https://github.com/rvoicilas/inotify-tools/wiki).
+Ice isn't on OPAM yet as it relies on the master version of Opium. You can install it with `git clone git@github.com:roddyyaga/ocoi.git && cd ocoi && opam install .`. It also depends on PostgreSQL and [inotify-tools](https://github.com/rvoicilas/inotify-tools/wiki).
 To check the install worked:
 ```
 $ ocoi version
