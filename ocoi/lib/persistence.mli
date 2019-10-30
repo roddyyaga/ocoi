@@ -152,4 +152,8 @@ module Mappers : sig
     val make_destroy :
       string -> Interface.Engine.connection -> int -> unit Lwt.t
   end
+
+  module Migrations (Interface : Interface) : sig
+    val make : string -> Interface.Engine.connection -> unit -> unit Lwt.t
+  end
 end

@@ -183,6 +183,14 @@ module Mappers = struct
     let make_destroy query connection id =
       Base.make_exec query connection Engine.Types.int ident id
   end
+
+  module Migrations (Interface : Interface) = struct
+    open Interface
+    module Base = Base (Interface)
+
+    let make query connection =
+      Base.make_exec query connection Engine.Types.unit ident
+  end
 end
 
 (*
