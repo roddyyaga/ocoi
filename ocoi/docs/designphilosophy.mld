@@ -30,7 +30,7 @@ doesn't really belong in a Model (since it is also needed in frontend code).
 
 Similarly, Rails and Django include functionality for serving static content. Ice doesn't have this; in cases where
 it does make sense to serve static content from a server that is also providing an API you can do it manually with
-Opium, but typically it should be served from a dedicated source (e.g. another server or a CDN).
+Opium, but typically static content should be served from a dedicated source (e.g. another server or a CDN).
 
 {1 Deploying Ice apps}
 Since OCaml is a compiled language that isn't widely used for building web apps, deploying Ice projects is different in
