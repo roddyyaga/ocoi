@@ -29,19 +29,25 @@ $ ocoi version
 
 ### Design
 - MVCish Rails-inspired project structure
-- But designed from the beginning for web apps with a REST API backend/SPA frontend architecture
+- But designed from the beginning for web apps with a REST API backend/modern (compiled-to)-JS framework frontend architecture
   - (rather than rendering pages server-side with templates)
 - Where relevant, code should be shareable with frontends written in OCaml (or ReasonML)
 - Database code generation rather than an ORM (for now at least)
 
 ### Example
 After successfully installing Ice, executing these commands with a running Postgres instance on `localhost:5432` with password `12345` gives an API that exposes CRUD functionality (Create Read Update Delete and Index) for the specified todo type on `localhost:3000/todos`.
-```
+```bash
+# Create a new project
 ocoi new todo &&
 cd todo &&
+# Create a model
 echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml &&
+# Generate code for the model
 ocoi generate scaffold app/models/todo.ml &&
+# Create the DB table for the model
 ocoi db migrate todo &&
+# Create routes for the model's controller
 sed -i 's!|> hello_world!|> Ocoi.Controllers.register_crud "/todos" (module Controllers.Todo.Crud)!g' app/main.ml &&
+# Start the server
 ocoi server
 ```
