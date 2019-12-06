@@ -1,7 +1,29 @@
 {0 OCaml On Ice roadmap}
-Various minor possible improvements are listed in the source code in [TODO] comments. Others will likely occur or be planned as I use the framework. Some larger planned features:
-- Types and query/controller generation to specify relationships between models
-- Code generation for integrated ReasonML/React frontend projects
-- Allowing deployment with FastCGI rather than as a standalone server
+{1 Short term}
+The changes planned for the immediate future are:
+- Change database layer to use ppx_mysql rather than Caqti
+- Implement the backend of the {{: https://github.com/gothinkster/realworld} RealWorld example app} and any
+  functionality necessary for that
 
+After this work will begin towards a 1.0 release with a stable API.
+
+{1 Longer term}
+{2 Database}
+The database layer may be changed to use a fork of {{: https://github.com/issuu/ppx_mysql} ppx_mysql} with features such
+as
+- Queries take records as arguments rather than having labelled parameters, allowing a {{:
+  https://github.com/StackExchange/Dapper} Dapper}-style "object" mapper to be used
+- SQL statements are fully parsed with syntax errors detected at compile time
+- Backends other than MySQL are supported
+
+Separately, I plan to implement a way to represent relationships between models/tables for generation of queries
+involving joins.
+
+{2 Integration with frontends}
+Generation of frontend code from model types may be implemented, likely with ReasonML/React.
+
+{2 Other}
+Various possible minor improvements are listed in the source code in [TODO] comments.
+
+{1 Contributing}
 Contributions are very welcome!

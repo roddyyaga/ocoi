@@ -1,5 +1,6 @@
 (lang dune 1.11)
 (name ocoi)
+(version 0.1)
 (source (github roddyyaga/ocoi))
 (documentation "https://roddyyaga.github.io/ocoi")
 (license MIT)
