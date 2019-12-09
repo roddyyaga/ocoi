@@ -19,9 +19,9 @@ let caqti_tuple_type_string resource_attributes =
     match length <= 4 with
     (* TODO - check length = 1 case *)
     | true -> (
-      match length = 1 with
-      | true -> ("", "")
-      | false -> (" ", Printf.sprintf "tup%d" length) )
+        match length = 1 with
+        | true -> ("", "")
+        | false -> (" ", Printf.sprintf "tup%d" length) )
     | false -> (" & ", "let (&) = tup2 in")
   in
   let joined_types =
@@ -139,7 +139,8 @@ let update (module Db : Caqti_lwt.CONNECTION) {%s} =
   let result = Db.exec update_query (%s, id) in
   Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string
-       (without_id resource_attributes @ [get_id_attribute resource_attributes]))
+       ( without_id resource_attributes
+       @ [ get_id_attribute resource_attributes ] ))
     table_name
     (column_tuple_string (without_id resource_attributes))
     (String.concat ~sep:", "
@@ -170,16 +171,18 @@ let write_queries ~model_path ~tree =
   in
   let table_name = Utils.pluralize module_name in
   let queries =
-    [ make_all_code table_name resource_attributes;
+    [
+      make_all_code table_name resource_attributes;
       make_show_code table_name resource_attributes;
       make_create_code table_name resource_attributes;
       make_update_code table_name resource_attributes;
-      make_destroy_code table_name ]
+      make_destroy_code table_name;
+    ]
   in
   let module_open_statement = "open Models." ^ String.capitalize module_name in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in
   let migration_queries = make_migration_code table_name resource_attributes in
-  Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries ;
+  Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries;
   Out_channel.close oc

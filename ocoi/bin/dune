@@ -1,7 +1,10 @@
 (executables
 (names ocoi)
 (public_names ocoi)
-(libraries core compiler-libs.common fileutils lwt lwt.unix)
-(preprocess (pps ppx_jane lwt_ppx))
+(libraries core compiler-libs.common fileutils lwt lwt.unix
+mysql ppx_mysql.runtime asdfasdfaw
+)
+(preprocess (pps ppx_jane lwt_ppx
+ppx_mysql))
 (package ocoi)
 )
