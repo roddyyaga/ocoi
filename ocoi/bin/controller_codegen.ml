@@ -6,9 +6,10 @@ let make_field_get_line resource_attribute =
   let type_name = resource_attribute.type_name in
   let json_function =
     match type_name with
-    | "int" | "bool" | "string" | "int_option" | "bool_option" | "string_option"
-      ->
-        "to_" ^ type_name
+    | "int" | "bool" | "string" -> "to_" ^ type_name
+    | "int option" | "bool option" | "string option" ->
+        let inner_type, _ = String.lsplit2_exn ~on:' ' type_name in
+        Printf.sprintf "to_%s_option" inner_type
     | _ ->
         failwith
           ("CRUD controller generation not implemented for type " ^ type_name)
