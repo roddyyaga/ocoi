@@ -7,7 +7,7 @@ let generate_queries =
       let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen.write_queries ~model_path ~tree;
+        Db_codegen_mysql.write_queries ~model_path ~tree;
         Migrations_codegen.write_migration_scripts ~model_path)
 
 let generate_controller =
@@ -28,7 +28,7 @@ let generate_scaffold =
       let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen.write_queries ~model_path ~tree;
+        Db_codegen_mysql.write_queries ~model_path ~tree;
         Migrations_codegen.write_migration_scripts ~model_path;
         Controller_codegen.write_controller ~model_path ~tree)
 
@@ -93,7 +93,7 @@ let db =
 let server =
   Command.basic ~summary:"Run an OCOI app, rebuilding when files are changed"
     ~readme:(fun () ->
-      "aaaaaaThis should be called from the root project directory (the one \
+      "This should be called from the root project directory (the one \
        containing `app`). It uses `main.ml` as an entry point. It is \
        implemented by rerunning `dune exec -- ./app/main.exe` when inotifywait \
        detects changes.")
@@ -138,5 +138,3 @@ let command =
     [ ("generate", generate); ("new", new_); ("server", server); ("db", db) ]
 
 let () = Command.run command
-
-open Mysql_example

@@ -47,6 +47,16 @@ let print_user { id; name; phone } =
 
 (** Database queries using the Ppx_mysql syntax extension. *)
 
+let migrate dbh =
+  [%mysql
+    execute
+      {sql| CREATE TABLE users (
+        id INT,
+        name STRING
+        )
+        |sql}]
+    dbh
+
 let get_all_users dbh =
   let open Lwt_result.Infix in
   [%mysql

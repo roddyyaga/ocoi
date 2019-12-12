@@ -1,4 +1,4 @@
 pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
+    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
+    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
 ]

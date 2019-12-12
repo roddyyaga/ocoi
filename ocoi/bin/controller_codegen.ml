@@ -22,7 +22,9 @@ let make_create resource_attributes =
 
 let make_controller_code module_name resource_attributes =
   let queries_module = "Queries." ^ String.capitalize module_name in
-  let create_parameters = parameters_string (without_id resource_attributes) in
+  let create_parameters =
+    ocaml_parameters_string (without_id resource_attributes)
+  in
   let record_literal = record_names_string resource_attributes "; " in
   Printf.sprintf
     {ocaml|let conn = Db.connection
@@ -60,5 +62,5 @@ let write_controller ~model_path ~tree =
   in
   let oc = Out_channel.create controller_name in
   Printf.fprintf oc "%s\n"
-    (make_controller_code module_name resource_attributes) ;
+    (make_controller_code module_name resource_attributes);
   Out_channel.close oc

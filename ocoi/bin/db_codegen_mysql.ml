@@ -19,128 +19,138 @@ let generate_create_table_sql table_name resource_attributes =
         a.sql_name ^ " " ^ a.sql_type_name)
   in
   let body = String.concat ~sep:",\n" column_definitions in
-  Printf.sprintf {sql| CREATE TABLE %s (
+  Printf.sprintf {|CREATE TABLE %s (
 %s
        )
-    |sql} table_name
+    |} table_name
     (Utils.indent body ~filler:' ' ~amount:9)
 
 (** Generate migrations code. *)
-let make_migration_code table_name resource_attributes =
+let make_migration_code ~table_name ~resource_attributes =
   let query = generate_create_table_sql table_name resource_attributes in
   Printf.sprintf
-    {ocaml|let migrate_query =
-  Caqti_request.exec Caqti_type.unit
-   {|%s|}
+    {ocaml|let migrate =
+    [%%mysql
+      execute
+        {sql|
+        %s
+        |sql}]
 
-let migrate (module Db : Caqti_lwt.CONNECTION) = Db.exec migrate_query ()
-
-let rollback_query = Caqti_request.exec Caqti_type.unit {| DROP TABLE %s |}
-
-let rollback (module Db : Caqti_lwt.CONNECTION) = Db.exec rollback_query ()|ocaml}
+let rollback =
+    [%%mysql
+      execute
+        {sql| DROP TABLE %s |sql}]
+|ocaml}
     query table_name
 
-(** Generate model code for getting all instances of a resource. *)
-let make_all_code table_name resource_attributes =
-  Printf.sprintf
-    {ocaml|let all_query =
-  Caqti_request.collect Caqti_type.unit
-    Caqti_type.%s
-    {sql| SELECT %s FROM %s |sql}
+type ppx_mysql_parameter = Input | Output
 
-let all (module Db : Caqti_lwt.CONNECTION) =
-  let result =
-    Db.fold all_query
-      (fun (%s) acc -> {%s} :: acc)
-      () []
+(** Generates code like [%int{id}, %string{name}] *)
+let ppx_mysql_parameters kind resource_attributes =
+  let symbol = match kind with Input -> "%" | Output -> "@" in
+  let f { type_name; sql_name; name; _ } =
+    let relevant_name = match kind with Input -> name | Output -> sql_name in
+    Printf.sprintf "%s%s{%s}" symbol type_name relevant_name
   in
-  Ocoi.Db.handle_caqti_result result|ocaml}
-    (caqti_tuple_type_string resource_attributes)
-    (column_tuple_string resource_attributes)
-    table_name
-    (record_names_string resource_attributes ", ")
-    (record_names_string resource_attributes "; ")
+  List.map ~f resource_attributes |> String.concat ~sep:", "
+
+(** Generates code like [name = %string{name}, age = %int{age}] *)
+let ppx_mysql_update_set resource_attributes =
+  let f { sql_name; type_name; name; _ } =
+    Printf.sprintf "%s = %%%s{%s}" sql_name type_name name
+  in
+  List.map ~f resource_attributes |> String.concat ~sep:", "
+
+(** Generate code for getting all instances of a resource. *)
+let make_all_code ~module_name ~table_name ~resource_attributes =
+  Printf.sprintf
+    {ocaml|let all dbh =
+        [%%mysql
+          select_all
+            {sql|
+            SELECT %s
+            FROM %s
+            |sql}] dbh
+            >|= List.map %s_of_tuple
+|ocaml}
+    (ppx_mysql_parameters Output resource_attributes)
+    table_name module_name
 
 (** Generate model code for getting a resource instance by ID. *)
-let make_show_code table_name resource_attributes =
+let make_show_code ~module_name ~table_name ~resource_attributes =
   Printf.sprintf
-    {ocaml|let show_query =
-  Caqti_request.find_opt Caqti_type.int
-    Caqti_type.%s
-    {sql| SELECT %s
-          FROM %s
-          WHERE id = (?)
-    |sql}
-
-let show (module Db : Caqti_lwt.CONNECTION) id =
-  let result = Db.find_opt show_query id in
-  let%%lwt data = Ocoi.Db.handle_caqti_result result in
-  let record =
-    match data with
-    | Some (%s) -> Some {%s}
-    | None -> None
-  in
-  Lwt.return record|ocaml}
-    (caqti_tuple_type_string resource_attributes)
-    (column_tuple_string resource_attributes)
-    table_name
-    (record_names_string resource_attributes ", ")
-    (record_names_string resource_attributes "; ")
+    {ocaml|let show dbh id =
+  [%%mysql
+    select_opt
+      {sql|
+      SELECT %s
+      FROM %s
+      WHERE id = %%int{id}
+      |sql}]
+  dbh ~id
+  >|= %s_of_tuple
+|ocaml}
+    (ppx_mysql_parameters Output resource_attributes)
+    table_name module_name
 
 (** Generate model code for creating a resource instance. *)
-let make_create_code table_name resource_attributes =
+let make_create_code ~table_name ~resource_attributes =
   Printf.sprintf
-    {ocaml|let create_query =
-  Caqti_request.find
-    Caqti_type.%s
-    Caqti_type.int
-    {sql| INSERT INTO %s (%s) VALUES (%s) RETURNING id |sql}
-
-let create (module Db : Caqti_lwt.CONNECTION) %s =
-  let result = Db.find create_query (%s) in
-  Ocoi.Db.handle_caqti_result result|ocaml}
-    (caqti_tuple_type_string (without_id resource_attributes))
+    {ocaml|let create dbh %s =
+  [%%mysql
+    select_one
+      {sql|
+      INSERT INTO %s (%s)
+      VALUES (%s);
+      SELECT LAST_INSERT_ID();
+      |sql}] dbh %s
+|ocaml}
+    (ocaml_parameters_string (without_id resource_attributes))
     table_name
     (column_tuple_string (without_id resource_attributes))
-    (String.concat ~sep:", "
-       (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
-    (parameters_string (without_id resource_attributes))
-    (record_names_string (without_id resource_attributes) ", ")
+    (ppx_mysql_parameters Input (without_id resource_attributes))
+    (ocaml_parameters_string (without_id resource_attributes))
 
 (** Generate model code for updating resource instance. *)
-let make_update_code table_name resource_attributes =
+let make_update_code ~table_name ~resource_attributes =
   Printf.sprintf
-    {ocaml|let update_query =
-  Caqti_request.exec
-    Caqti_type.%s
-    {| UPDATE %s
-       SET (%s) = (%s)
-       WHERE id = (?)
-    |}
-
-let update (module Db : Caqti_lwt.CONNECTION) {%s} =
-  let result = Db.exec update_query (%s, id) in
-  Ocoi.Db.handle_caqti_result result|ocaml}
-    (caqti_tuple_type_string
-       ( without_id resource_attributes
-       @ [ get_id_attribute resource_attributes ] ))
-    table_name
-    (column_tuple_string (without_id resource_attributes))
-    (String.concat ~sep:", "
-       (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
+    {ocaml|let update dbh {%s} =
+  [%%mysql
+    execute
+      {sql|
+      UPDATE %s
+      SET %s
+      WHERE id = %%int{id}
+      |sql}]
+      dbh %s
+|ocaml}
     (record_names_string resource_attributes "; ")
-    (record_names_string (without_id resource_attributes) ", ")
+    table_name
+    (ppx_mysql_update_set resource_attributes)
+    (ocaml_parameters_string resource_attributes)
 
 (** Generate model code for destroying a resource instance. *)
-let make_destroy_code table_name =
+let make_destroy_code ~table_name =
   Printf.sprintf
-    {ocaml|let destroy_query =
-  Caqti_request.exec Caqti_type.int {sql| DELETE FROM %s WHERE id = (?) |sql}
-
-let destroy (module Db : Caqti_lwt.CONNECTION) id =
-  let result = Db.exec destroy_query id in
-  Ocoi.Db.handle_caqti_result result|ocaml}
+    {ocaml|let destroy dbh id =
+  [%%mysql
+    execute
+      {sql| DELETE FROM %S WHERE id = %%int{id} |sql}]
+  dbh ~id
+|ocaml}
     table_name
+
+let make_initial_code ~module_name ~resource_attributes =
+  Printf.sprintf
+    {ocaml|open Lwt_result.Infix;
+open Models.%s;
+
+    let %s_of_tuple (%s) = {%s}
+|ocaml}
+    (String.capitalize module_name)
+    module_name
+    (record_names_string resource_attributes ", ")
+    (record_names_string resource_attributes "; ")
 
 let write_queries ~model_path ~tree =
   let module_name, dir = module_name_and_dir ~model_path in
@@ -155,17 +165,17 @@ let write_queries ~model_path ~tree =
   let table_name = Utils.pluralize module_name in
   let queries =
     [
-      make_all_code table_name resource_attributes;
-      make_show_code table_name resource_attributes;
-      make_create_code table_name resource_attributes;
-      make_update_code table_name resource_attributes;
-      make_destroy_code table_name;
+      make_all_code ~module_name ~table_name ~resource_attributes;
+      make_show_code ~module_name ~table_name ~resource_attributes;
+      make_create_code ~table_name ~resource_attributes;
+      make_update_code ~table_name ~resource_attributes;
+      make_destroy_code ~table_name;
     ]
   in
-  let module_open_statement = "open Models." ^ String.capitalize module_name in
-  let crud_queries =
-    String.concat ~sep:"\n\n" (module_open_statement :: queries)
+  let initial_code = make_initial_code ~module_name ~resource_attributes in
+  let crud_queries = String.concat ~sep:"\n\n" (initial_code :: queries) in
+  let migration_queries =
+    make_migration_code ~table_name ~resource_attributes
   in
-  let migration_queries = make_migration_code table_name resource_attributes in
   Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries;
   Out_channel.close oc

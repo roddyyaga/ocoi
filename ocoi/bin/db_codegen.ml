@@ -121,7 +121,7 @@ let create (module Db : Caqti_lwt.CONNECTION) %s =
     (column_tuple_string (without_id resource_attributes))
     (String.concat ~sep:", "
        (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
-    (parameters_string (without_id resource_attributes))
+    (ocaml_parameters_string (without_id resource_attributes))
     (record_names_string (without_id resource_attributes) ", ")
 
 (** Generate model code for updating resource instance. *)
