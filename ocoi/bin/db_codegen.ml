@@ -22,6 +22,15 @@ let caqti_tuple_name_string resource_attributes =
       List.fold_right ~f ~init:(List.last_exn names)
         (List.take names (length - 1))
 
+(** Map OCaml type names to Caqti ones, mostly they are they same but differ e.g. for options. *)
+let type_name_to_caqti_type_name type_name =
+  match type_name with
+  | "int" | "bool" | "string" -> type_name
+  | "int option" | "bool option" | "string option" ->
+      let inner_type, _ = String.lsplit2_exn ~on:' ' type_name in
+      "option\n    " ^ inner_type
+  | _ -> failwith "Unexpected type name"
+
 (** Given a list of resource attributes, return a string "(tup[n] type1 type2 ...)". *)
 let caqti_tuple_type_string resource_attributes =
   let length = List.length resource_attributes in
@@ -35,7 +44,9 @@ let caqti_tuple_type_string resource_attributes =
     | false -> (" & ", "let (&) = tup2 in")
   in
   let joined_types =
-    String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.type_name))
+    String.concat ~sep
+      (List.map resource_attributes ~f:(fun a ->
+           type_name_to_caqti_type_name a.type_name))
   in
   Printf.sprintf "(%s %s)" inital_string joined_types
 
