@@ -6,7 +6,9 @@ let make_field_get_line resource_attribute =
   let type_name = resource_attribute.type_name in
   let json_function =
     match type_name with
-    | "int" | "bool" | "string" -> "to_" ^ type_name
+    | "int" | "bool" | "string" | "int_option" | "bool_option" | "string_option"
+      ->
+        "to_" ^ type_name
     | _ ->
         failwith
           ("CRUD controller generation not implemented for type " ^ type_name)
