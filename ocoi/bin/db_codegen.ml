@@ -48,11 +48,11 @@ let make_migration_code table_name resource_attributes =
   Printf.sprintf
     {ocaml|let migrate_query =
   Caqti_request.exec Caqti_type.unit
-   {|%s|}
+   {sql|%s|sql}
 
 let migrate (module Db : Caqti_lwt.CONNECTION) = Db.exec migrate_query ()
 
-let rollback_query = Caqti_request.exec Caqti_type.unit {| DROP TABLE %s |}
+let rollback_query = Caqti_request.exec Caqti_type.unit {sql| DROP TABLE %s |sql}
 
 let rollback (module Db : Caqti_lwt.CONNECTION) = Db.exec rollback_query ()|ocaml}
     query table_name
@@ -92,11 +92,7 @@ let make_show_code table_name resource_attributes =
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
   let%%lwt data = Ocoi.Db.handle_caqti_result result in
-  let record =
-    match data with
-    | Some (%s) -> Some {%s}
-    | None -> None
-  in
+  let record = Option.map ~f:(fun (%s) -> {%s}) data in
   Lwt.return record|ocaml}
     (caqti_tuple_type_string resource_attributes)
     (column_tuple_string resource_attributes)
@@ -130,10 +126,10 @@ let make_update_code table_name resource_attributes =
     {ocaml|let update_query =
   Caqti_request.exec
     Caqti_type.%s
-    {| UPDATE %s
+    {sql| UPDATE %s
        SET (%s) = (%s)
        WHERE id = (?)
-    |}
+    |sql}
 
 let update (module Db : Caqti_lwt.CONNECTION) {%s} =
   let result = Db.exec update_query (%s, id) in
@@ -179,7 +175,7 @@ let write_queries ~model_path ~tree =
       make_destroy_code table_name;
     ]
   in
-  let module_open_statement = "open Models." ^ String.capitalize module_name in
+  let module_open_statement = "open Core\nopen Models." ^ String.capitalize module_name in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in
