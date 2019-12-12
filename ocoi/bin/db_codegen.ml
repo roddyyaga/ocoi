@@ -4,13 +4,23 @@ open Core
 (* TODO - add tests *)
 
 (** Given a list of resource attributes, return a string "column_name1, column_name2, ..."
- * (note the lack of parentheses). *)
-let column_tuple_string resource_attributes =
-  let joined_names =
-    String.concat ~sep:", "
-      (List.map resource_attributes ~f:(fun a -> a.sql_name))
-  in
-  joined_names
+ *
+ * Note the lack of parentheses. *)
+let sql_comma_string resource_attributes =
+  let sql_names = List.map resource_attributes ~f:(fun a -> a.sql_name) in
+  String.concat ~sep:", " sql_names
+
+(** Given a list of resource attributes, return a string "(column_name1, column_name2, ...)"
+ * This accounts for Caqti tuples becoming nested above a length of four. *)
+let caqti_tuple_name_string resource_attributes =
+  let names = List.map resource_attributes ~f:(fun a -> a.name) in
+  let length = List.length resource_attributes in
+  match length <= 4 with
+  | true -> "(" ^ String.concat ~sep:", " names ^ ")"
+  | false ->
+      let f name acc = Printf.sprintf "(%s, %s)" name acc in
+      List.fold_right ~f ~init:(List.last_exn names)
+        (List.take names (length - 1))
 
 (** Given a list of resource attributes, return a string "(tup[n] type1 type2 ...)". *)
 let caqti_tuple_type_string resource_attributes =
@@ -68,14 +78,14 @@ let make_all_code table_name resource_attributes =
 let all (module Db : Caqti_lwt.CONNECTION) =
   let result =
     Db.fold all_query
-      (fun (%s) acc -> {%s} :: acc)
+      (fun %s acc -> {%s} :: acc)
       () []
   in
   Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string resource_attributes)
-    (column_tuple_string resource_attributes)
+    (sql_comma_string resource_attributes)
     table_name
-    (record_names_string resource_attributes ", ")
+    (caqti_tuple_name_string resource_attributes)
     (record_names_string resource_attributes "; ")
 
 (** Generate model code for getting a resource instance by ID. *)
@@ -92,12 +102,12 @@ let make_show_code table_name resource_attributes =
 let show (module Db : Caqti_lwt.CONNECTION) id =
   let result = Db.find_opt show_query id in
   let%%lwt data = Ocoi.Db.handle_caqti_result result in
-  let record = Option.map ~f:(fun (%s) -> {%s}) data in
+  let record = Option.map ~f:(fun %s -> {%s}) data in
   Lwt.return record|ocaml}
     (caqti_tuple_type_string resource_attributes)
-    (column_tuple_string resource_attributes)
+    (sql_comma_string resource_attributes)
     table_name
-    (record_names_string resource_attributes ", ")
+    (caqti_tuple_name_string resource_attributes)
     (record_names_string resource_attributes "; ")
 
 (** Generate model code for creating a resource instance. *)
@@ -110,18 +120,21 @@ let make_create_code table_name resource_attributes =
     {sql| INSERT INTO %s (%s) VALUES (%s) RETURNING id |sql}
 
 let create (module Db : Caqti_lwt.CONNECTION) %s =
-  let result = Db.find create_query (%s) in
+  let result = Db.find create_query %s in
   Ocoi.Db.handle_caqti_result result|ocaml}
     (caqti_tuple_type_string (without_id resource_attributes))
     table_name
-    (column_tuple_string (without_id resource_attributes))
+    (sql_comma_string (without_id resource_attributes))
     (String.concat ~sep:", "
        (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
     (ocaml_parameters_string (without_id resource_attributes))
-    (record_names_string (without_id resource_attributes) ", ")
+    (caqti_tuple_name_string (without_id resource_attributes))
 
 (** Generate model code for updating resource instance. *)
 let make_update_code table_name resource_attributes =
+  let reordered =
+    without_id resource_attributes @ [ get_id_attribute resource_attributes ]
+  in
   Printf.sprintf
     {ocaml|let update_query =
   Caqti_request.exec
@@ -132,17 +145,15 @@ let make_update_code table_name resource_attributes =
     |sql}
 
 let update (module Db : Caqti_lwt.CONNECTION) {%s} =
-  let result = Db.exec update_query (%s, id) in
+  let result = Db.exec update_query %s in
   Ocoi.Db.handle_caqti_result result|ocaml}
-    (caqti_tuple_type_string
-       ( without_id resource_attributes
-       @ [ get_id_attribute resource_attributes ] ))
+    (caqti_tuple_type_string reordered)
     table_name
-    (column_tuple_string (without_id resource_attributes))
+    (sql_comma_string (without_id resource_attributes))
     (String.concat ~sep:", "
        (List.map (without_id resource_attributes) ~f:(fun _ -> "?")))
     (record_names_string resource_attributes "; ")
-    (record_names_string (without_id resource_attributes) ", ")
+    (caqti_tuple_name_string reordered)
 
 (** Generate model code for destroying a resource instance. *)
 let make_destroy_code table_name =
@@ -175,7 +186,9 @@ let write_queries ~model_path ~tree =
       make_destroy_code table_name;
     ]
   in
-  let module_open_statement = "open Core\nopen Models." ^ String.capitalize module_name in
+  let module_open_statement =
+    "open Core\nopen Models." ^ String.capitalize module_name
+  in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)
   in

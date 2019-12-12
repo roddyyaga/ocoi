@@ -40,48 +40,44 @@ type resource_attribute = {
 
 (* TODO - update generated code to match changes to example project code *)
 (* TODO - work out which postgres types would be best to generate *)
-(* TODO - generate types without NOT NULL for options *)
+(* TODO - generate types for floats *)
 (* TODO - generate types for enums *)
 (* TODO - generate types for foreign keys *)
-let ocaml_type_name_to_sql name type_name =
-  let base_sql_type =
+let get_type_names name pld_type =
+  (* type_name is for Ocaml *)
+  let type_name, sql_type_name =
     match name with
     | "id" -> (
-        match type_name with
-        | "int" -> "SERIAL PRIMARY KEY"
-        (* TODO - handle int option? *)
+        match pld_type with
+        | [%type: int] -> ("int", "SERIAL PRIMARY KEY NOT NULL")
         | _ -> failwith "SQL generation for non-int id not supported" )
     | _ -> (
-        match type_name with
-        | "int" -> "INT"
-        | "bool" -> "BOOLEAN"
-        | "string" -> "VARCHAR"
-        | _ -> failwith ("SQL generation not implemented for type " ^ type_name)
-        )
+        match pld_type with
+        | [%type: int] -> ("int", "INT NOT NULL")
+        | [%type: bool] -> ("bool", "BOOLEAN NOT NULL")
+        | [%type: string] -> ("string", "VARCHAR NOT NULL")
+        | [%type: int option] -> ("int", "INT")
+        | [%type: bool option] -> ("bool", "BOOLEAN")
+        | [%type: string option] -> ("string", "VARCHAR")
+        | _ ->
+            failwith
+              (Printf.sprintf
+                 "SQL generation not implemented for type specified for field \
+                  [%s]"
+                 name) )
   in
-  base_sql_type ^ " NOT NULL"
+  (type_name, sql_type_name)
 
 (* TODO - handle forbidden SQL column names *)
 
 (** Produce a resource_attribute from a relevant bit of AST. *)
-let make_resource_attribute (name, type_name) =
-  {
-    name;
-    type_name;
-    sql_name = name;
-    sql_type_name = ocaml_type_name_to_sql name type_name;
-  }
+let make_resource_attribute ~name ~type_name ~sql_type_name =
+  { name; type_name; sql_name = name; sql_type_name }
 
 let process_label_decl ({ pld_name; pld_type; _ } : label_declaration) =
-  let type_string =
-    match pld_type with
-    | { ptyp_desc = Ptyp_constr (ident, _); _ } -> (
-        match ident.txt with
-        | Longident.Lident s -> s
-        | _ -> failwith "Unexpected complex long identifiers in record" )
-    | _ -> failwith "SQL generation only possible for basic types"
-  in
-  make_resource_attribute (pld_name.txt, type_string)
+  let name = pld_name.txt in
+  let type_name, sql_type_name = get_type_names name pld_type in
+  make_resource_attribute ~name ~type_name ~sql_type_name
 
 (** Extract resource_attributes from label declarations AST. *)
 let get_resource_attributes (label_decls : label_declaration list) =

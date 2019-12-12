@@ -4,7 +4,6 @@
 (libraries core compiler-libs.common fileutils lwt lwt.unix
 mysql ppx_mysql.runtime
 )
-(preprocess (pps ppx_jane lwt_ppx
-ppx_mysql))
+(preprocess (pps ppx_jane lwt_ppx ppxlib.metaquot))
 (package ocoi)
 )
