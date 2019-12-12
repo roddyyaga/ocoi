@@ -13,8 +13,8 @@ depends: [
   "dune"
   "core"
   "lwt"
-  "opium_core" {= "correct"}
-  "opium" {= "correct"}
+  "opium_core" {= "master"}
+  "opium" {= "master"}
   "caqti"
   "caqti-lwt"
   "caqti-driver-postgresql"
@@ -40,6 +40,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/roddyyaga/ocoi.git"
 pin-depends: [
-    [ "opium.correct" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
-    [ "opium_core.correct" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
+    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
+    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
 ]
