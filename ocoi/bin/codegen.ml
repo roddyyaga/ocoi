@@ -56,9 +56,9 @@ let get_type_names name pld_type =
         | [%type: int] -> ("int", "INT NOT NULL")
         | [%type: bool] -> ("bool", "BOOLEAN NOT NULL")
         | [%type: string] -> ("string", "VARCHAR NOT NULL")
-        | [%type: int option] -> ("int", "INT")
-        | [%type: bool option] -> ("bool", "BOOLEAN")
-        | [%type: string option] -> ("string", "VARCHAR")
+        | [%type: int option] -> ("int option", "INT")
+        | [%type: bool option] -> ("bool option", "BOOLEAN")
+        | [%type: string option] -> ("string option", "VARCHAR")
         | _ ->
             failwith
               (Printf.sprintf
