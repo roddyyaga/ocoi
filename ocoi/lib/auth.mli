@@ -10,8 +10,10 @@
     the associated request. For instance, using JWT tokens for authentication:
     {[let jwt_algorithm = Jwt.HS256 "SupaSekretKey"
 
-  let check_user jwt_payload req = let jwt_user = Jwt.(find_claim (claim "user_id") jwt_payload) in let req_id = param
-  req "id" in jwt_user = req_id
+  let check_user jwt_payload req =
+    let jwt_user = Jwt.(find_claim (claim "user_id") jwt_payload) in
+    let req_id = param req "id" in
+    jwt_user = req_id
 
   let auth_func = let token_check = Ocoi.Auth.Checks.jwt ~algorithm:jwt_algorithm ~validate:check_user in
   Ocoi.Auth.Checks.bearer_only token_check

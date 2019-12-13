@@ -28,7 +28,7 @@ let type_name_to_caqti_type_name type_name =
   | "int" | "bool" | "string" -> type_name
   | "int option" | "bool option" | "string option" ->
       let inner_type, _ = String.lsplit2_exn ~on:' ' type_name in
-      "option\n    " ^ inner_type
+      "option " ^ inner_type
   | _ -> failwith "Unexpected type name"
 
 (** Given a list of resource attributes, return a string "(tup[n] type1 type2 ...)". *)

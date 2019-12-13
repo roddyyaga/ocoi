@@ -79,3 +79,9 @@ let register_crud name (module Crud : Crud) app =
   |> update_handler name update of_yojson
   |> destroy_handler name destroy
   |> index_handler name index to_yojson
+
+let register_json verb path f =
+  verb path (fun req ->
+      let%lwt input = App.json_of_body_exn req in
+      let%lwt response = f input in
+      `Json response |> respond')

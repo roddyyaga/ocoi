@@ -60,7 +60,7 @@ val create_handler :
   (Yojson.Safe.t -> int Lwt.t) ->
   ?wrapper:((Request.t -> Response.t Lwt.t) -> Rock.Handler.t) ->
   Opium.App.builder
-(** [app |> create_handler "name" Crud.create] exposes [Crud.create] at [POST /name]
+(** [app |> create_handler "/name" Crud.create] exposes [Crud.create] at [POST /name]
 
     Each handler creation function has an optional [wrapper] argument, which if provided will be used to modify the
     handler function. This can be used to do things like adding authentication. *)
@@ -71,7 +71,7 @@ val index_handler :
   ('a -> Yojson.Safe.t) ->
   ?wrapper:((Request.t -> Response.t Lwt.t) -> Rock.Handler.t) ->
   Opium.App.builder
-(** [app |> index_handler "name" Crud.index Crud.to_yojson] exposes [Crud.index] at [GET /name] *)
+(** [app |> index_handler "/name" Crud.index Crud.to_yojson] exposes [Crud.index] at [GET /name] *)
 
 val show_handler :
   string ->
@@ -79,7 +79,7 @@ val show_handler :
   ('a -> Yojson.Safe.t) ->
   ?wrapper:((Request.t -> Response.t Lwt.t) -> Rock.Handler.t) ->
   Opium.App.builder
-(** [app |> show_handler "name" Crud.show to_yojson] exposes [Crud.show] at [GET /name/:id] *)
+(** [app |> show_handler "/name" Crud.show to_yojson] exposes [Crud.show] at [GET /name/:id] *)
 
 val update_handler :
   string ->
@@ -87,7 +87,7 @@ val update_handler :
   (Yojson.Safe.t -> ('a, string) result) ->
   ?wrapper:((Request.t -> Response.t Lwt.t) -> Rock.Handler.t) ->
   Opium.App.builder
-(** [app |> update_handler "name" Crud.update Crud.of_yojson] exposes [Crud.update] at [PUT /name]
+(** [app |> update_handler "/name" Crud.update Crud.of_yojson] exposes [Crud.update] at [PUT /name]
 
     Note that this differs from the conventional location of [PUT /name/:id] for the Update operation of CRUD. This is
     because the ID of the new model will always be supplied in the body, so doesn't need to be put in the URL too. *)
@@ -97,10 +97,10 @@ val destroy_handler :
   (int -> unit Lwt.t) ->
   ?wrapper:((Request.t -> Response.t Lwt.t) -> Rock.Handler.t) ->
   Opium.App.builder
-(** [app |> destroy_handler "name" Crud.destroy] exposes [Crud.destroy] at [Delete /name/:id] *)
+(** [app |> destroy_handler "/name" Crud.destroy] exposes [Crud.destroy] at [Delete /name/:id] *)
 
 val register_crud : string -> (module Crud) -> App.t -> App.t
-(** [register_crud "name" (module Crud) app] calls [index_handler], [show_handler], [update_handler] and [destroy_handler]
+(** [register_crud "/name" (module Crud) app] calls [index_handler], [show_handler], [update_handler] and [destroy_handler]
      on [app]. *)
 
 (* TODO - document these *)
@@ -126,3 +126,11 @@ val update_request_fun :
   Response.t Lwt.t
 
 val destroy_request_fun : (int -> unit Lwt.t) -> Request.t -> Response.t Lwt.t
+
+val register_json :
+  App.route ->
+  string ->
+  (Yojson.Safe.t -> Yojson.Safe.t Lwt.t) ->
+  App.t ->
+  App.t
+(** [register_json verb "/path" f] registers a handler that takes a request with a JSON body and returns the result of [f] called on that body. *)
