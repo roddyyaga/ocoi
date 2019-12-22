@@ -43,21 +43,21 @@ let rollback =
 |ocaml}
     query table_name
 
-type ppx_mysql_parameter = Input | Output
+type rapper_parameter = Input | Output
 
 (** Generates code like [%int{id}, %string{name}] *)
 let rapper_parameters kind resource_attributes =
   let symbol = match kind with Input -> "%" | Output -> "@" in
-  let f { type_name; sql_name; name; _ } =
+  let f { sql_name; name; rapper_name; _ } =
     let relevant_name = match kind with Input -> name | Output -> sql_name in
-    Printf.sprintf "%s%s{%s}" symbol type_name relevant_name
+    Printf.sprintf "%s%s{%s}" symbol rapper_name relevant_name
   in
   List.map ~f resource_attributes |> String.concat ~sep:", "
 
 (** Generates code like [name = %string{name}, age = %int{age}] *)
 let rapper_update_set resource_attributes =
-  let f { sql_name; type_name; name; _ } =
-    Printf.sprintf "%s = %%%s{%s}" sql_name type_name name
+  let f { sql_name; rapper_name; name; _ } =
+    Printf.sprintf "%s = %%%s{%s}" sql_name rapper_name name
   in
   List.map ~f resource_attributes |> String.concat ~sep:", "
 
@@ -100,7 +100,7 @@ let make_create_code ~table_name ~resource_attributes =
     get_one
       {sql|
       INSERT INTO %s (%s)
-      VALUES (%s);
+      VALUES (%s)
       RETURNING id
       |sql}]
 |ocaml}
@@ -136,7 +136,7 @@ let make_destroy_code ~table_name =
     table_name
 
 let make_initial_code ~module_name =
-  Printf.sprintf {ocaml|open Models.%s;|ocaml} (String.capitalize module_name)
+  Printf.sprintf {ocaml|open Models.%s|ocaml} (String.capitalize module_name)
 
 let write_queries ~model_path ~tree =
   let module_name, dir = module_name_and_dir ~model_path in

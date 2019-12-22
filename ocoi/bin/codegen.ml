@@ -33,6 +33,7 @@ let get_t_node_labels_ast tree =
 type resource_attribute = {
   name: string;
   type_name: string;
+  rapper_name: string;
   sql_name: string;
   sql_type_name: string;
 }
@@ -45,20 +46,22 @@ type resource_attribute = {
 (* TODO - generate types for foreign keys *)
 let get_type_names name pld_type =
   (* type_name is for Ocaml *)
-  let type_name, sql_type_name =
+  let type_name, rapper_name, sql_type_name =
     match name with
     | "id" -> (
         match pld_type with
-        | [%type: int] -> ("int", "SERIAL PRIMARY KEY NOT NULL")
+        | [%type: int] -> ("int", "int", "SERIAL PRIMARY KEY NOT NULL")
         | _ -> failwith "SQL generation for non-int id not supported" )
     | _ -> (
         match pld_type with
-        | [%type: int] -> ("int", "INT NOT NULL")
-        | [%type: bool] -> ("bool", "BOOLEAN NOT NULL")
-        | [%type: string] -> ("string", "VARCHAR NOT NULL")
-        | [%type: int option] -> ("int option", "INT")
-        | [%type: bool option] -> ("bool option", "BOOLEAN")
-        | [%type: string option] -> ("string option", "VARCHAR")
+        | [%type: int] -> ("int", "int", "INT NOT NULL")
+        | [%type: bool] -> ("bool", "bool", "BOOLEAN NOT NULL")
+        | [%type: string] -> ("string", "string", "VARCHAR NOT NULL")
+        | [%type: float] -> ("float", "float", "FLOAT NOT NULL")
+        | [%type: int option] -> ("int option", "int?", "INT")
+        | [%type: bool option] -> ("bool option", "bool?", "BOOLEAN")
+        | [%type: string option] -> ("string option", "string?", "VARCHAR")
+        | [%type: float option] -> ("float option", "float?", "FLOAT")
         | _ ->
             failwith
               (Printf.sprintf
@@ -66,18 +69,18 @@ let get_type_names name pld_type =
                   [%s]"
                  name) )
   in
-  (type_name, sql_type_name)
+  (type_name, rapper_name, sql_type_name)
 
 (* TODO - handle forbidden SQL column names *)
 
 (** Produce a resource_attribute from a relevant bit of AST. *)
-let make_resource_attribute ~name ~type_name ~sql_type_name =
-  { name; type_name; sql_name = name; sql_type_name }
+let make_resource_attribute ~name ~type_name ~rapper_name ~sql_type_name  =
+    { name; type_name; sql_name = name; rapper_name; sql_type_name }
 
 let process_label_decl ({ pld_name; pld_type; _ } : label_declaration) =
   let name = pld_name.txt in
-  let type_name, sql_type_name = get_type_names name pld_type in
-  make_resource_attribute ~name ~type_name ~sql_type_name
+  let type_name, rapper_name, sql_type_name = get_type_names name pld_type in
+  make_resource_attribute ~name ~type_name ~rapper_name ~sql_type_name
 
 (** Extract resource_attributes from label declarations AST. *)
 let get_resource_attributes (label_decls : label_declaration list) =
