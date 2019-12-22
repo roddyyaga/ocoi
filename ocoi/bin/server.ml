@@ -39,7 +39,7 @@ let watch_for_server_end process ~f =
 let watch_file_descr_output descr ~f ~channel_finished =
   let descr = descr |> Lwt_unix.of_unix_file_descr in
   let ic = Lwt_io.(of_fd ~mode:input descr) in
-  Lwt.async (fun () -> display_lines ic ~f ~channel_finished |> Lwt.return)
+  Lwt.async (fun () -> display_lines ic ~f ~channel_finished)
 
 (* TODO - force messages about closing channels/server finishing to be printend
  * before "Server built and started" *)
@@ -51,7 +51,7 @@ let watch_file_descr_output descr ~f ~channel_finished =
 let start_server () =
   let result =
     Unix.create_process ~prog:"dune"
-      ~args:["exec"; "--"; "./app/main.exe"; "-d"]
+      ~args:[ "exec"; "--"; "./app/main.exe"; "-d" ]
   in
   let () = print_endline "Server built and started" in
   let () =
