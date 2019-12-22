@@ -7,7 +7,7 @@ let generate_queries =
       let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen.write_queries ~model_path ~tree;
+        Db_codegen_rapper.write_queries ~model_path ~tree;
         Migrations_codegen.write_migration_scripts ~model_path)
 
 let generate_controller =
@@ -28,7 +28,7 @@ let generate_scaffold =
       let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen.write_queries ~model_path ~tree;
+        Db_codegen_rapper.write_queries ~model_path ~tree;
         Migrations_codegen.write_migration_scripts ~model_path;
         Controller_codegen.write_controller ~model_path ~tree)
 
