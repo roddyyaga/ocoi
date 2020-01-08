@@ -4,6 +4,9 @@ OCaml On Ice is a web framework in the style of Ruby on Rails, built on top of
 BuckleScript or js\_of\_ocaml frontends. Documentation is [here](https://roddyyaga.github.io/ocoi/ocoi/index.html), in
 particular see the [tutorial](https://roddyyaga.github.io/ocoi/ocoi/tutorial.html) and [design philosophy](https://roddyyaga.github.io/ocoi/ocoi/designphilosophy.html).
 
+## Project status
+I'm currently busy with schoolwork, will continue developing this from mid-January.
+
 ## Installation
 Ice isn't on OPAM yet as it relies on the master version of Opium. You can install it with `git clone git@github.com:roddyyaga/ocoi.git && cd ocoi && opam install .`. It also depends on PostgreSQL and [inotify-tools](https://github.com/rvoicilas/inotify-tools/wiki).
 To check the install worked:
