@@ -30,6 +30,12 @@ type auth_credential = [ Cohttp.Auth.credential | `Bearer of string ]
 val get_authorization : Cohttp.Header.t -> auth_credential option
 (** Get the [auth_credential] from a header. *)
 
+val get_token :
+  ?auth_getter:(auth_credential option -> string option) ->
+  Request.t ->
+  string option
+(** Get a token from a request. Without a value for [auth_getter], assumes the authorization header is of the form [Bearer <token>]. *)
+
 val authenticate :
   check:(auth_credential option -> Request.t -> bool) ->
   (Request.t -> Response.t Lwt.t) ->

@@ -32,3 +32,6 @@ val make_token : algorithm:Jwt.algorithm -> (string * string) list -> Jwt.t
 val make_and_encode :
   algorithm:Jwt.algorithm -> (string * string) sexp_list -> string
 (** [make_and_encode ~algorithm claims] calls [make_token ~algorithm claims] and encodes the result as a base64 string. *)
+
+val get_claim : string -> Jwt.payload -> string option
+(** [get_claim "claim" payload] returns [Some v] if [v] is the value associated with ["claim"] in [payload] or [None] if ["claim"] is not present in the token. *)
