@@ -198,7 +198,7 @@ let write_queries ~model_path ~tree =
     ]
   in
   let module_open_statement =
-    "open Core\nopen Models." ^ String.capitalize module_name
+    "open Core\nopen Models." ^ String.capitalize_ascii module_name
   in
   let crud_queries =
     String.concat ~sep:"\n\n" (module_open_statement :: queries)

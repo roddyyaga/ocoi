@@ -21,20 +21,19 @@ let generate_create_table_sql table_name resource_attributes =
   let body = String.concat ~sep:",\n" column_definitions in
   Printf.sprintf {|CREATE TABLE %s (
 %s
-       )
-    |} table_name
-    (Utils.indent body ~filler:' ' ~amount:9)
+        )|} table_name
+    (Utils.indent body ~filler:' ' ~amount:10)
 
 (** Generate migrations code. *)
 let make_migration_code ~table_name ~resource_attributes =
   let query = generate_create_table_sql table_name resource_attributes in
   Printf.sprintf
     {ocaml|let migrate =
-    [%%rapper
-      execute
-        {sql|
-        %s
-        |sql}]
+  [%%rapper
+    execute
+      {sql|
+       %s
+      |sql}]
 
 let rollback =
     [%%rapper
@@ -65,13 +64,13 @@ let rapper_update_set resource_attributes =
 let make_all_code ~table_name ~resource_attributes =
   Printf.sprintf
     {ocaml|let all =
-        [%%rapper
-          get_many
-            {sql|
-            SELECT %s
-            FROM %s
-            |sql}
-            record_out]
+  [%%rapper
+    get_many
+      {sql|
+      SELECT %s
+      FROM %s
+      |sql}
+      record_out]
 |ocaml}
     (rapper_parameters Output resource_attributes)
     table_name
@@ -92,7 +91,7 @@ let make_show_code ~table_name ~resource_attributes =
     (rapper_parameters Output resource_attributes)
     table_name
 
-(** TODO - generalise id *)
+(* TODO - generalise id *)
 (** Generate model code for creating a resource instance. *)
 let make_create_code ~table_name ~resource_attributes =
   Printf.sprintf
@@ -137,7 +136,7 @@ let make_destroy_code ~table_name =
     table_name
 
 let make_initial_code ~module_name =
-  Printf.sprintf {ocaml|open Core\nopen Models.%s|ocaml} (String.capitalize module_name)
+  Printf.sprintf "open Core\nopen Models.%s" (String.capitalize module_name)
 
 let write_queries ~model_path ~tree =
   let module_name, dir = module_name_and_dir ~model_path in
