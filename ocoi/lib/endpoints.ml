@@ -3,6 +3,8 @@ open Opium.Std
 
 type verb = Get | Post | Put | Delete
 
+type status_code = Cohttp.Code.status_code
+
 let verb_to_route verb =
   match verb with Get -> get | Post -> post | Put -> put | Delete -> delete
 
@@ -51,13 +53,23 @@ module Parameters = struct
 
     val of_yojson : Yojson.Safe.t -> t Ppx_deriving_yojson_runtime.error_or
   end
+
+  module type None = sig
+    type t = unit
+  end
 end
+
+module Json_list (Json : Parameters.Json) = Json
 
 module Responses = struct
   module type Json = sig
     type t
 
     val to_yojson : t -> Yojson.Safe.t
+  end
+
+  module type Empty_code_headers = sig
+    type t = status_code * (string * string) list
   end
 end
 
@@ -95,6 +107,10 @@ module Make = struct
         in
         (j, jwt) |> Lwt.return
     end
+
+    module None (Parameters : Parameters.None) = struct
+      let f _req = () |> Lwt.return
+    end
   end
 
   module Responses = struct
@@ -104,7 +120,7 @@ module Make = struct
         `Json (response |> Responses.to_yojson) |> respond'
     end
 
-    module Json_with_code (Responses : Responses.Json) = struct
+    module Json_code (Responses : Responses.Json) = struct
       let f response_lwt =
         let%lwt response = response_lwt in
         let code_string, content_json =
@@ -119,6 +135,21 @@ module Make = struct
           | None -> failwith "yo!"
         in
         `Json content_json |> respond' ~code
+    end
+
+    module Json_list (Responses : Responses.Json) = struct
+      let f response_lwt =
+        let%lwt response = response_lwt in
+        let list_of_json = List.map response ~f:Responses.to_yojson in
+        let json_of_list = `List list_of_json in
+        `Json json_of_list |> respond'
+    end
+
+    module Empty_code_headers (Responses : Responses.Empty_code_headers) =
+    struct
+      let f response_lwt =
+        let%lwt code, headers = response_lwt in
+        `String "" |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
     end
   end
 end
