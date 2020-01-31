@@ -63,9 +63,9 @@ module Parameters = struct
 
     val f : Request.t -> t
   end
-end
 
-module Json_list (Json : Parameters.Json) = Json
+  module Json_list (Json : Json) = Json
+end
 
 module Responses = struct
   module type Json = sig
@@ -77,6 +77,8 @@ module Responses = struct
   module type Empty_code_headers = sig
     type t = status_code * (string * string) list
   end
+
+  module Json_list (Json : Json) = Json
 end
 
 module Make = struct
