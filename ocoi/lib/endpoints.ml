@@ -213,6 +213,27 @@ module Make = struct
         response |> respond'
     end
 
+    module Empty_code (Responses : Responses.Empty_code) = struct
+      let f ?error_responder response_result_lwt =
+        let error_responder = get_default_error_responder error_responder in
+        let%lwt response_result = response_result_lwt in
+        match response_result with
+        | Ok code -> `String "" |> respond' ~code
+        | Error error -> error_responder error |> respond'
+    end
+
+    module Empty_code_headers (Responses : Responses.Empty_code_headers) =
+    struct
+      let f ?error_responder response_result_lwt =
+        let error_responder = get_default_error_responder error_responder in
+        let%lwt response_result = response_result_lwt in
+        match response_result with
+        | Ok (code, headers) ->
+            `String ""
+            |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
+        | Error error -> error_responder error |> respond'
+    end
+
     module No_result = struct
       module Json (Responses : Responses.Json) = struct
         let f response_lwt =
