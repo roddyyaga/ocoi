@@ -157,7 +157,7 @@ module Make = struct
         let () = assert (Str.string_match pattern S.path 0) in
         Str.matched_group 1 S.path
 
-      let f req = Parameters.of_string (param req name)
+      let f req = Parameters.of_string (param req name) |> Lwt.return
     end
 
     module Custom (Parameters : Parameters.Custom) = struct
