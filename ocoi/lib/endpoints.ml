@@ -57,6 +57,12 @@ module Parameters = struct
   module type None = sig
     type t = unit
   end
+
+  module type Custom = sig
+    type t
+
+    val f : Request.t -> t
+  end
 end
 
 module Json_list (Json : Parameters.Json) = Json
@@ -110,6 +116,10 @@ module Make = struct
 
     module None (Parameters : Parameters.None) = struct
       let f _req = () |> Lwt.return
+    end
+
+    module Custom (Parameters : Parameters.Custom) = struct
+      let f req = Parameters.f req |> Lwt.return
     end
   end
 
