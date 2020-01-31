@@ -182,54 +182,88 @@ module Make = struct
   end
 
   module Responses = struct
-    module Json (Responses : Responses.Json) = struct
-      let f response_lwt =
-        let%lwt response = response_lwt in
-        `Json (response |> Responses.to_yojson) |> respond'
-    end
+    let get_default_error_responder provided_responder =
+      Option.value provided_responder ~default:(fun _ ->
+          failwith "Some error occurred")
 
-    module Json_code (Responses : Responses.Json) = struct
-      let f response_lwt =
-        let%lwt response = response_lwt in
-        let code_string, content_json =
-          match Responses.to_yojson response with
-          | [%yojson? [ [%y? `String code_string]; [%y? content_json] ]] ->
-              (code_string, content_json)
-          | _ -> failwith "yo!"
+    module Json (Responses : Responses.Json) = struct
+      let f ?error_responder response_result_lwt =
+        let error_responder = get_default_error_responder error_responder in
+        let%lwt response_result = response_result_lwt in
+        let response =
+          match response_result with
+          | Ok response -> `Json (response |> Responses.to_yojson)
+          | Error error -> error_responder error
         in
-        let code =
-          match String.chop_prefix ~prefix:"_" code_string with
-          | Some number -> number |> int_of_string |> Cohttp.Code.status_of_code
-          | None -> failwith "yo!"
-        in
-        `Json content_json |> respond' ~code
+        response |> respond'
     end
 
     module Json_list (Responses : Responses.Json) = struct
-      let f response_lwt =
-        let%lwt response = response_lwt in
-        let list_of_json = List.map response ~f:Responses.to_yojson in
-        let json_of_list = `List list_of_json in
-        `Json json_of_list |> respond'
+      let f ?error_responder response_result_lwt =
+        let error_responder = get_default_error_responder error_responder in
+        let%lwt response_result = response_result_lwt in
+        let response =
+          match response_result with
+          | Ok response ->
+              let list_of_json = List.map response ~f:Responses.to_yojson in
+              let json_of_list = `List list_of_json in
+              `Json json_of_list
+          | Error error -> error_responder error
+        in
+        response |> respond'
     end
 
-    module Empty_code (Responses : Responses.Empty_code) = struct
-      let f response_lwt =
-        let%lwt code = response_lwt in
-        `String "" |> respond' ~code
-    end
+    module No_result = struct
+      module Json (Responses : Responses.Json) = struct
+        let f response_lwt =
+          let%lwt response = response_lwt in
+          `Json (response |> Responses.to_yojson) |> respond'
+      end
 
-    module Empty_code_headers (Responses : Responses.Empty_code_headers) =
-    struct
-      let f response_lwt =
-        let%lwt code, headers = response_lwt in
-        `String "" |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
-    end
+      module Json_code (Responses : Responses.Json) = struct
+        let f response_lwt =
+          let%lwt response = response_lwt in
+          let code_string, content_json =
+            match Responses.to_yojson response with
+            | [%yojson? [ [%y? `String code_string]; [%y? content_json] ]] ->
+                (code_string, content_json)
+            | _ -> failwith "yo!"
+          in
+          let code =
+            match String.chop_prefix ~prefix:"_" code_string with
+            | Some number ->
+                number |> int_of_string |> Cohttp.Code.status_of_code
+            | None -> failwith "yo!"
+          in
+          `Json content_json |> respond' ~code
+      end
 
-    module String (Responses : Responses.String) = struct
-      let f response_lwt =
-        let%lwt s = response_lwt in
-        `String s |> respond'
+      module Json_list (Responses : Responses.Json) = struct
+        let f response_lwt =
+          let%lwt response = response_lwt in
+          let list_of_json = List.map response ~f:Responses.to_yojson in
+          let json_of_list = `List list_of_json in
+          `Json json_of_list |> respond'
+      end
+
+      module Empty_code (Responses : Responses.Empty_code) = struct
+        let f response_lwt =
+          let%lwt code = response_lwt in
+          `String "" |> respond' ~code
+      end
+
+      module Empty_code_headers (Responses : Responses.Empty_code_headers) =
+      struct
+        let f response_lwt =
+          let%lwt code, headers = response_lwt in
+          `String "" |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
+      end
+
+      module String (Responses : Responses.String) = struct
+        let f response_lwt =
+          let%lwt s = response_lwt in
+          `String s |> respond'
+      end
     end
   end
 end
@@ -242,7 +276,7 @@ let handler (module S : Specification) input_f impl_f output_f =
   in
   route S.path handler
 
-module type Some_P = sig
+(*module type Some_P = sig
   type t
 
   val f : Request.t -> t Lwt.t
@@ -263,4 +297,4 @@ module Handler
             and type rt := S.Responses.t) =
 struct
   let f = handler (module S) P.f I.f R.f
-end
+end*)
