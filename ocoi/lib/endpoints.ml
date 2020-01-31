@@ -98,12 +98,28 @@ module Responses = struct
     val to_yojson : t -> Yojson.Safe.t
   end
 
+  module type Empty_code = sig
+    type t = status_code
+  end
+
+  module Empty_code = struct
+    type t = status_code
+  end
+
   module type Empty_code_headers = sig
     type t = status_code * (string * string) list
   end
 
   module Empty_code_headers = struct
     type t = status_code * (string * string) list
+  end
+
+  module type String = sig
+    type t = string
+  end
+
+  module String = struct
+    type t = string
   end
 
   module Json_list (Json : Json) = Json
@@ -197,11 +213,23 @@ module Make = struct
         `Json json_of_list |> respond'
     end
 
+    module Empty_code (Responses : Responses.Empty_code) = struct
+      let f response_lwt =
+        let%lwt code = response_lwt in
+        `String "" |> respond' ~code
+    end
+
     module Empty_code_headers (Responses : Responses.Empty_code_headers) =
     struct
       let f response_lwt =
         let%lwt code, headers = response_lwt in
         `String "" |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
+    end
+
+    module String (Responses : Responses.String) = struct
+      let f response_lwt =
+        let%lwt s = response_lwt in
+        `String s |> respond'
     end
   end
 end
