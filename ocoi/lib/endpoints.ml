@@ -58,6 +58,10 @@ module Parameters = struct
     type t = unit
   end
 
+  module None = struct
+    type t = unit
+  end
+
   module type Custom = sig
     type t
 
@@ -75,6 +79,10 @@ module Responses = struct
   end
 
   module type Empty_code_headers = sig
+    type t = status_code * (string * string) list
+  end
+
+  module Empty_code_headers = struct
     type t = status_code * (string * string) list
   end
 
