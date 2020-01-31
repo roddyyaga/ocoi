@@ -62,6 +62,12 @@ module Parameters = struct
     type t = unit
   end
 
+  module type One_param = sig
+    type t
+
+    val of_string : string -> t
+  end
+
   module type Custom = sig
     type t
 
@@ -126,6 +132,18 @@ module Make = struct
 
     module None (Parameters : Parameters.None) = struct
       let f _req = () |> Lwt.return
+    end
+
+    module One_param (Parameters : Parameters.One_param) (S : Specification) =
+    struct
+      let () = assert (String.count ~f:(( = ) ':') S.path = 1)
+
+      let name =
+        let pattern = Str.regexp {re|.*:\([^/]*\)\(/\|$\)|re} in
+        let () = assert (Str.string_match pattern S.path 0) in
+        Str.matched_group 1 S.path
+
+      let f req = Parameters.of_string (param req name)
     end
 
     module Custom (Parameters : Parameters.Custom) = struct
