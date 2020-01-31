@@ -68,6 +68,20 @@ module Parameters = struct
     val of_string : string -> t
   end
 
+  module One_param = struct
+    module Int = struct
+      type t = int
+
+      let of_string = int_of_string
+    end
+
+    module String = struct
+      type t = string
+
+      let of_string = Fn.id
+    end
+  end
+
   module type Custom = sig
     type t
 
