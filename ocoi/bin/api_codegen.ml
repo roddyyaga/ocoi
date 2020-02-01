@@ -64,7 +64,7 @@ end|ocaml}
     (String.capitalize module_name)
     (String.capitalize module_name)
 
-let write_controller ~model_path ~tree ~reason =
+let write_api_code ~model_path ~tree ~reason =
   let module_name, dir = module_name_and_dir ~model_path in
   let api_name =
     let ( / ) = Filename.concat in

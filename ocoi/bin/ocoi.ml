@@ -24,6 +24,17 @@ let generate_controller =
         let tree = Codegen.load_tree ~model_path in
         Controller_codegen.write_controller ~model_path ~tree ~reason)
 
+let generate_api =
+  Command.basic ~summary:"Generate CRUD API code for a model"
+    Command.Let_syntax.(
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
+      fun () ->
+        let tree = Codegen.load_tree ~model_path in
+        Api_codegen.write_api_code ~model_path ~tree ~reason)
+
 let generate_handlers =
   Command.basic ~summary:"Generate handlers for CRUD endpoints for a model"
     Command.Let_syntax.(
@@ -50,6 +61,7 @@ let generate_scaffold =
         Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
         Migrations_codegen.write_migration_scripts ~model_path ~reason;
         Controller_codegen.write_controller ~model_path ~tree ~reason;
+        Api_codegen.write_api_code ~model_path ~tree ~reason;
         Handlers_codegen.add_crud ~model_path ~reason)
 
 let generate =
