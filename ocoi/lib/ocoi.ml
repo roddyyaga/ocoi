@@ -1,10 +1,10 @@
 (** The OCaml On Ice library *)
 
+module Api = Api
 module App = App
 module Auth = Auth
 module Controllers = Controllers
 module Db = Db
-module Endpoints = Endpoints
 module Handlers = Handlers
 module Handler_utils = Handler_utils
 module Jwt_utils = Jwt_utils
