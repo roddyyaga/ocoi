@@ -20,7 +20,9 @@ let ocamlformat path =
 (** Run refmt on a file in place, changing the suffix *)
 let refmt path =
   let new_path = String.chop_suffix_exn ~suffix:"ml" path ^ "re" in
-  let command = Printf.sprintf "refmt %s > %s && rm %s" path new_path path in
+  let command =
+    Printf.sprintf "refmt --parse=ml %s > %s && rm %s" path new_path path
+  in
   Unix.system command
 
 (** Run either ocamlformat or refmt on a file in place *)
