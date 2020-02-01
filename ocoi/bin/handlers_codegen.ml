@@ -25,7 +25,7 @@ let handlers_pattern =
      ]+List.flatten[ \t\n\
      ]+\\[\\)\\(.*\\)\\(\\]$\\)"
 
-let add_crud ~model_path ~reason =
+let add_crud ~model_path =
   let module_name, dir = module_name_and_dir ~model_path in
   let handlers_filename =
     let ( / ) = Filename.concat in
@@ -50,4 +50,5 @@ let add_crud ~model_path ~reason =
       [ before_match; new_crud; before_list; new_list_contents; after_list ]
   in
   Out_channel.write_all handlers_filename ~data:new_handlers_contents;
-  Utils.reformat ~reason handlers_filename
+  let _ = Utils.ocamlformat handlers_filename in
+  ()
