@@ -57,23 +57,23 @@ module Destroy = struct
 
   module Parameters = Parameters.One_param.Int
   module Responses = Responses.No_content
-end
-    |ocaml}
+end|ocaml}
     (Utils.pluralize module_name)
     create_parameters
     (String.capitalize module_name)
     (String.capitalize module_name)
     (String.capitalize module_name)
 
-let write_controller ~model_path ~tree =
+let write_controller ~model_path ~tree ~reason =
   let module_name, dir = module_name_and_dir ~model_path in
-  let controller_name =
+  let api_name =
     let ( / ) = Filename.concat in
-    dir / ".." / "controllers" / (module_name ^ ".ml")
+    dir / ".." / "api" / (module_name ^ ".ml")
   in
   let resource_attributes =
     tree |> get_t_node_labels_ast |> get_resource_attributes
   in
-  let oc = Out_channel.create controller_name in
+  let oc = Out_channel.create api_name in
   Printf.fprintf oc "%s\n" (make_api_code module_name resource_attributes);
-  Out_channel.close oc
+  Out_channel.close oc;
+  Utils.reformat ~reason api_name

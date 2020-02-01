@@ -5,6 +5,7 @@ module Auth = Auth
 module Controllers = Controllers
 module Db = Db
 module Endpoints = Endpoints
+module Handlers = Handlers
 module Handler_utils = Handler_utils
 module Jwt_utils = Jwt_utils
 module Logging = Logging

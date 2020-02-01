@@ -2,7 +2,7 @@
 (names ocoi)
 (public_names ocoi)
 (libraries core compiler-libs.common fileutils lwt lwt.unix
-mysql ppx_mysql.runtime
+mysql ppx_mysql.runtime str
 )
 (preprocess (pps ppx_jane lwt_ppx ppxlib.metaquot))
 (package ocoi)

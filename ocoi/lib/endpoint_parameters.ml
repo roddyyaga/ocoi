@@ -83,7 +83,7 @@ module Make = struct
           Jwt_utils.verify_and_decode ~algorithm token
         with
         | Some (Payload p) -> p
-        | _ -> failwith "jwt err"
+        | _ -> failwith "erro"
       in
       (j, jwt) |> Lwt.return
   end

@@ -4,46 +4,70 @@ let generate_queries =
   (* TODO - fill out readmes *)
   Command.basic ~summary:"Generate CRUD DB code for a model"
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen_rapper.write_queries ~model_path ~tree;
-        Migrations_codegen.write_migration_scripts ~model_path)
+        Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
+        Migrations_codegen.write_migration_scripts ~model_path ~reason)
 
 let generate_controller =
   Command.basic ~summary:"Generate CRUD controller code for a model"
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Controller_codegen.write_controller ~model_path ~tree)
+        Controller_codegen.write_controller ~model_path ~tree ~reason)
+
+let generate_handlers =
+  Command.basic ~summary:"Generate handlers for CRUD endpoints for a model"
+    Command.Let_syntax.(
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
+      fun () -> Handlers_codegen.add_crud ~model_path ~reason)
 
 let generate_scaffold =
   (* TODO - pluralise name *)
   Command.basic ~summary:"Generate CRUD controller and DB code for a model"
     ~readme:(fun () ->
-      "Currently just does `ocoi generate queries` and `ocoi generate \
-       controller`.")
+      "Equivalent to `ocoi generate queries && ocoi generate controller && \
+       ocoi generate handlers`.")
     Command.Let_syntax.(
-      let%map_open model_path = anon ("model_path" %: Filename.arg_type) in
+      let%map_open model_path = anon ("model_path" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
+
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen_rapper.write_queries ~model_path ~tree;
-        Migrations_codegen.write_migration_scripts ~model_path;
-        Controller_codegen.write_controller ~model_path ~tree)
+        Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
+        Migrations_codegen.write_migration_scripts ~model_path ~reason;
+        Controller_codegen.write_controller ~model_path ~tree ~reason;
+        Handlers_codegen.add_crud ~model_path ~reason)
 
 let generate =
   Command.group ~summary:"Generate various kinds of code"
     [
       ("queries", generate_queries);
       ("controller", generate_controller);
+      ("handlers", generate_handlers);
       ("scaffold", generate_scaffold);
     ]
 
 let new_ =
   Command.basic ~summary:"Create an empty project"
     Command.Let_syntax.(
-      let%map_open name = anon ("name" %: Filename.arg_type) in
+      let%map_open name = anon ("name" %: Filename.arg_type)
+      and reason =
+        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+      in
       (* TODO - sanitise name *)
       fun () ->
         let template_directory_name =
@@ -51,7 +75,11 @@ let new_ =
             ("ocoi" |> FileUtil.which |> FilePath.dirname)
             "../share/ocoi/project_template"
         in
-        FileUtil.cp ~recurse:true [ template_directory_name ] name)
+        FileUtil.cp ~recurse:true [ template_directory_name ] name;
+        let ( / ) = FilePath.concat in
+        let main_path = name / "app" / "main.ml" in
+        let db_path = name / "app" / "db" / "db.ml" in
+        List.iter ~f:(Utils.reformat ~reason) [ main_path; db_path ])
 
 let migrate =
   Command.basic ~summary:"Run DB migrations for a model"

@@ -92,6 +92,7 @@ let make_show_code ~table_name ~resource_attributes =
     table_name
 
 (* TODO - generalise id *)
+
 (** Generate model code for creating a resource instance. *)
 let make_create_code ~table_name ~resource_attributes =
   Printf.sprintf
@@ -138,7 +139,7 @@ let make_destroy_code ~table_name =
 let make_initial_code ~module_name =
   Printf.sprintf "open Core\nopen Models.%s" (String.capitalize module_name)
 
-let write_queries ~model_path ~tree =
+let write_queries ~model_path ~tree ~reason =
   let module_name, dir = module_name_and_dir ~model_path in
   let queries_path =
     let ( / ) = Filename.concat in
@@ -164,4 +165,5 @@ let write_queries ~model_path ~tree =
     make_migration_code ~table_name ~resource_attributes
   in
   Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries;
-  Out_channel.close oc
+  Out_channel.close oc;
+  Utils.reformat queries_path ~reason

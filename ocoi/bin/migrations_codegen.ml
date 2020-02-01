@@ -45,7 +45,7 @@ let migration_script_name module_name
   module_name ^ "_" ^ Operation.name
 
 (* TODO - factor getting queries_name etc. out *)
-let write_migration_script ~model_path
+let write_migration_script ~model_path ~reason
     (module Operation : MigrateOperations.Operation) =
   let module_name, dir = module_name_and_dir ~model_path in
   let queries_path =
@@ -59,8 +59,9 @@ let write_migration_script ~model_path
     make_migration_or_rollback_script module_name (module Operation)
   in
   let oc = Out_channel.create queries_path in
-  Printf.fprintf oc "%s\n" script_content ;
-  Out_channel.close oc
+  Printf.fprintf oc "%s\n" script_content;
+  Out_channel.close oc;
+  Utils.reformat ~reason queries_path
 
 let write_new_migrations_dune ~module_name ~dune_path =
   let dune_content =
@@ -74,7 +75,7 @@ let write_new_migrations_dune ~module_name ~dune_path =
       (migration_script_name module_name (module MigrateOperations.Rollback))
   in
   let oc = Out_channel.create dune_path in
-  Printf.fprintf oc "%s\n" dune_content ;
+  Printf.fprintf oc "%s\n" dune_content;
   Out_channel.close oc
 
 let update_migrations_dune ~module_name ~dune_path =
@@ -96,7 +97,7 @@ let update_migrations_dune ~module_name ~dune_path =
       existing_names
   in
   let new_names =
-    ("names" :: filtered_names) @ [migrate_name; rollback_name]
+    ("names" :: filtered_names) @ [ migrate_name; rollback_name ]
   in
   let new_names_line =
     Sexp.to_string (List.sexp_of_t String.sexp_of_t new_names)
@@ -106,7 +107,7 @@ let update_migrations_dune ~module_name ~dune_path =
   in
   let dune_content = String.concat ~sep:"\n" new_lines in
   let oc = Out_channel.create dune_path in
-  Printf.fprintf oc "%s\n" dune_content ;
+  Printf.fprintf oc "%s\n" dune_content;
   Out_channel.close oc
 
 let create_or_update_migrate_dune ~model_path =
@@ -120,7 +121,7 @@ let create_or_update_migrate_dune ~model_path =
   | `No -> write_new_migrations_dune ~module_name ~dune_path
   | `Unknown -> failwith "Migrations dune file has unknown status"
 
-let write_migration_scripts ~model_path =
-  write_migration_script ~model_path (module MigrateOperations.Migrate) ;
-  write_migration_script ~model_path (module MigrateOperations.Rollback) ;
+let write_migration_scripts ~model_path ~reason =
+  write_migration_script ~model_path ~reason (module MigrateOperations.Migrate);
+  write_migration_script ~model_path ~reason (module MigrateOperations.Rollback);
   create_or_update_migrate_dune ~model_path
