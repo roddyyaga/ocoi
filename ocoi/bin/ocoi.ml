@@ -88,7 +88,12 @@ let new_ =
         let ( / ) = FilePath.concat in
         let main_path = name / "app" / "main.ml" in
         let db_path = name / "app" / "db" / "db.ml" in
-        List.iter ~f:(Utils.reformat ~reason) [ main_path; db_path ])
+        let hello_api = name / "app" / "api" / "hello.ml" in
+        let hello_controller = name / "app" / "controller" / "hello.ml" in
+        (* Do not reformat handlers.ml:
+         * that can't use Reason syntax with the current hacky way of updating it *)
+        List.iter ~f:(Utils.reformat ~reason)
+          [ main_path; db_path; hello_api; hello_controller ])
 
 let migrate =
   Command.basic ~summary:"Run DB migrations for a model"
