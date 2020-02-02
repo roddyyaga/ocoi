@@ -68,9 +68,8 @@ let write_new_migrations_dune ~module_name ~dune_path =
     Printf.sprintf
       {dune|(executables
 (names %s %s)
-(libraries lwt
-           queries db)
-(preprocess (pps lwt_ppx)))|dune}
+(libraries ocoi
+           queries db))|dune}
       (migration_script_name module_name (module MigrateOperations.Migrate))
       (migration_script_name module_name (module MigrateOperations.Rollback))
   in

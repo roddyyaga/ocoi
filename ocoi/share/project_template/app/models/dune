@@ -1,4 +1,3 @@
 (library
 (name models)
-(libraries lwt caqti caqti-lwt caqti-driver-postgresql)
-(preprocess (pps lwt_ppx ppx_yojson_conv ppx_ocoi)))
+(preprocess (pps ppx_yojson_conv ppx_ocoi)))

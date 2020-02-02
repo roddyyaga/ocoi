@@ -1,7 +1,7 @@
 (executable
 (name main)
 (public_name main)
-(libraries opium yojson logs logs.fmt
+(libraries logs logs.fmt
            ocoi
            models api controllers)
 (preprocess (pps lwt_ppx))
