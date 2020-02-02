@@ -6,7 +6,7 @@ let generate_queries =
     Command.Let_syntax.(
       let%map_open model_path = anon ("model_path" %: Filename.arg_type)
       and reason =
-        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+        flag "-reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
@@ -18,7 +18,7 @@ let generate_controller =
     Command.Let_syntax.(
       let%map_open model_path = anon ("model_path" %: Filename.arg_type)
       and reason =
-        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+        flag "-reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
@@ -29,7 +29,7 @@ let generate_api =
     Command.Let_syntax.(
       let%map_open model_path = anon ("model_path" %: Filename.arg_type)
       and reason =
-        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+        flag "-reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
       fun () -> Api_codegen.write_api_code ~model_path ~reason)
 
@@ -48,7 +48,7 @@ let generate_scaffold =
     Command.Let_syntax.(
       let%map_open model_path = anon ("model_path" %: Filename.arg_type)
       and reason =
-        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+        flag "-reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
 
       fun () ->
@@ -73,7 +73,7 @@ let new_ =
     Command.Let_syntax.(
       let%map_open name = anon ("name" %: Filename.arg_type)
       and reason =
-        flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
+        flag "-reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
       (* TODO - sanitise name *)
       fun () ->
