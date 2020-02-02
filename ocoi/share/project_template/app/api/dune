@@ -1,4 +1,4 @@
 (library
 (name api)
-(libraries ocoi core yojson ppx_deriving_yojson.runtime models)
-(preprocess (pps ppx_deriving_yojson)))
+(libraries ocoi models)
+(preprocess (pps ppx_yojson_conv)))

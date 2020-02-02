@@ -1,4 +1,4 @@
-(lang dune 1.11)
+(lang dune 2.0)
 (name ocoi)
 (version 0.1)
 (source (github roddyyaga/ocoi))
@@ -22,8 +22,17 @@ caqti-lwt
 caqti-driver-postgresql
 fileutils
 lwt_ppx
-ppx_deriving_yojson
+ppx_yojson_conv
 jwt
 base64
+)
+)
+
+(package
+(name ppx_ocoi)
+(synopsis "PPXs for OCaml On Ice")
+(depends
+dune
+ppxlib
 )
 )

@@ -31,9 +31,7 @@ let generate_api =
       and reason =
         flag "--reason" no_arg ~doc:" use Reason syntax rather than OCaml"
       in
-      fun () ->
-        let tree = Codegen.load_tree ~model_path in
-        Api_codegen.write_api_code ~model_path ~tree ~reason)
+      fun () -> Api_codegen.write_api_code ~model_path ~reason)
 
 let generate_handlers =
   Command.basic ~summary:"Generate handlers for CRUD endpoints for a model"
@@ -58,7 +56,7 @@ let generate_scaffold =
         Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
         Migrations_codegen.write_migration_scripts ~model_path ~reason;
         Controller_codegen.write_controller ~model_path ~tree ~reason;
-        Api_codegen.write_api_code ~model_path ~tree ~reason;
+        Api_codegen.write_api_code ~model_path ~reason;
         Handlers_codegen.add_crud ~model_path)
 
 let generate =
@@ -89,7 +87,7 @@ let new_ =
         let main_path = name / "app" / "main.ml" in
         let db_path = name / "app" / "db" / "db.ml" in
         let hello_api = name / "app" / "api" / "hello.ml" in
-        let hello_controller = name / "app" / "controller" / "hello.ml" in
+        let hello_controller = name / "app" / "controllers" / "hello.ml" in
         (* Do not reformat handlers.ml:
          * that can't use Reason syntax with the current hacky way of updating it *)
         List.iter ~f:(Utils.reformat ~reason)

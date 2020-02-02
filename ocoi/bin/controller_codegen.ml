@@ -3,10 +3,9 @@ open Codegen
 
 let make_controller_code module_name resource_attributes =
   Printf.sprintf
-    {ocaml|open Api.%s
-open Models.%s
+    {ocaml|open Models.%s
 
-let create Create.Parameters.{ %s }=
+let create { %s }=
   Queries.%s.create Db.connection %s
 
 let index () = Queries.%s.all Db.connection ()
@@ -17,7 +16,6 @@ let update { %s }=
   Queries.%s.update Db.connection { %s }
 
 let destroy id = Queries.%s.destroy Db.connection id|ocaml}
-    (String.capitalize module_name)
     (String.capitalize module_name)
     (record_names_string (without_id resource_attributes) "; ")
     (String.capitalize module_name)

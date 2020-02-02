@@ -5,8 +5,8 @@ module Parameters = struct
   module type Jwt_json = sig
     type parameters
 
-    val parameters_of_yojson :
-      Yojson.Safe.t -> parameters Ppx_deriving_yojson_runtime.error_or
+    val parameters_of_yojson' :
+      Yojson.Safe.t -> parameters Ppx_yojson_conv_lib.Yojson_conv.Result.t
 
     type t = parameters * Jwt.payload
   end
@@ -14,7 +14,8 @@ module Parameters = struct
   module type Json = sig
     type t
 
-    val of_yojson : Yojson.Safe.t -> t Ppx_deriving_yojson_runtime.error_or
+    val t_of_yojson' :
+      Yojson.Safe.t -> t Ppx_yojson_conv_lib.Yojson_conv.Result.t
   end
 
   module type None = sig
@@ -60,7 +61,7 @@ module Make = struct
       (* TODO catch Yojson.Json_error here (and maybe more?) *)
       let%lwt json = App.json_of_body_exn req in
       let j =
-        match json |> Parameters.of_yojson with
+        match json |> Parameters.t_of_yojson' with
         | Ok x -> x
         | Error _ -> failwith "erro"
       in
@@ -71,7 +72,7 @@ module Make = struct
     let f ~algorithm req =
       let%lwt json = App.json_of_body_exn req in
       let j =
-        match json |> Parameters.parameters_of_yojson with
+        match json |> Parameters.parameters_of_yojson' with
         | Ok x -> x
         | Error _ -> failwith "erro"
       in

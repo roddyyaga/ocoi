@@ -3,7 +3,6 @@
 module Api = Api
 module App = App
 module Auth = Auth
-module Controllers = Controllers
 module Db = Db
 module Handlers = Handlers
 module Handler_utils = Handler_utils

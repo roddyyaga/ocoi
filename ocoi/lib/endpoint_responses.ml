@@ -7,7 +7,7 @@ module Responses = struct
   module type Json = sig
     type t
 
-    val to_yojson : t -> Yojson.Safe.t
+    val yojson_of_t : t -> Yojson.Safe.t
   end
 
   module type Unit = sig
@@ -88,19 +88,19 @@ module Make = struct
     end
 
     module Json (Responses : Responses.Json) = struct
-      let f content = `Json (content |> Responses.to_yojson) |> respond'
+      let f content = `Json (content |> Responses.yojson_of_t) |> respond'
     end
 
     module Json_opt (Responses : Responses.Json_opt) = struct
       let f content_opt =
         match content_opt with
-        | Some content -> `Json (content |> Responses.to_yojson) |> respond'
+        | Some content -> `Json (content |> Responses.yojson_of_t) |> respond'
         | None -> `String "" |> respond' ~code:`Not_found
     end
 
     module Json_list (Responses : Responses.Json_list) = struct
       let f content =
-        let list_of_json = List.map content ~f:Responses.to_yojson in
+        let list_of_json = List.map content ~f:Responses.yojson_of_t in
         let json_of_list = `List list_of_json in
         `Json json_of_list |> respond'
     end
@@ -108,7 +108,7 @@ module Make = struct
     module Json_code (Responses : Responses.Json_code) = struct
       let f content =
         let code_string, content_json =
-          match Responses.to_yojson content with
+          match Responses.yojson_of_t content with
           | [%yojson? [ [%y? `String code_string]; [%y? content_json] ]] ->
               (code_string, content_json)
           | _ -> failwith "yo!"

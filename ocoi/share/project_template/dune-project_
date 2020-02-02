@@ -13,7 +13,7 @@ caqti
 caqti-lwt
 caqti-driver-postgresql
 yojson
-ppx_deriving_yojson
+ppx_yojson_conv
 lwt_ppx
 logs
 logs.fmt
