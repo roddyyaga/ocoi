@@ -94,7 +94,8 @@ let restart_on_change ~server ~watchtool_output ~freq =
       |> Lwt_io.(of_fd ~mode:input)
     in
     match%lwt Lwt_io.read_line_opt ic with
-    | Some _ -> (
+    | Some line -> (
+        print_endline line;
         let current_time = Unix.time () in
         match current_time >= restart_time with
         | true ->
