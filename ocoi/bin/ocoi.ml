@@ -161,7 +161,10 @@ let server =
              "delete";
              "-e";
              "delete_self";
+             "--exclude";
+             ".merlin";
              "@./_build/";
+             "@./app/node_modules/.lsp/";
              ".";
            ]
          in
