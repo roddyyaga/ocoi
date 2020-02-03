@@ -162,7 +162,7 @@ let server =
              "-e";
              "delete_self";
              "--exclude";
-             "(.*_build.*)|(.*node_modules/\.lsp/.*)|(.*\.merlin.*)";
+             "(.*_build.*)|(.*node_modules/\\.lsp/.*)|(.*\\.merlin.*)";
              ".";
            ]
          in

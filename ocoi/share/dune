@@ -15,7 +15,7 @@
 (project_template/app/db/dune as project_template/app/db/dune)
 (project_template/app/db/db.ml as project_template/app/db/db.ml)
 (project_template/app/db/migrate/test as project_template/app/db/migrate/test)
-(project_template/app/api/dune as project_template/app/api/dune)
+(project_template/app/api/dune_ as project_template/app/api/dune)
 (project_template/app/api/hello.ml as project_template/app/api/hello.ml)
 )
 (section share)

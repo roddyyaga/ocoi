@@ -2,36 +2,38 @@ open Base
 
 type status_code = Cohttp.Code.status_code
 
+module Implementations = struct
+  module type Unit = sig
+    type t = unit
+  end
+
+  module Unit = struct
+    type t = unit
+  end
+
+  module type Int = sig
+    type t = int
+  end
+
+  module Int = struct
+    type t = int
+  end
+end
+
 module type Json = sig
   type t
 
   val yojson_of_t : t -> Yojson.Safe.t
 end
 
-module type Unit = sig
-  type t = unit
-end
+module type No_content = Implementations.Unit
 
-module Unit = struct
-  type t = unit
-end
-
-module type No_content = Unit
-
-module No_content = Unit
-
-module type Int = sig
-  type t = int
-end
-
-module Int = struct
-  type t = int
-end
+module No_content = Implementations.Unit
 
 module Created = struct
-  module type Int = Int
+  module type Int = Implementations.Int
 
-  module Int = Int
+  module Int = Implementations.Int
 end
 
 module type Empty_code = sig

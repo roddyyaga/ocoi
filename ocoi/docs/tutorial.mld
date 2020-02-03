@@ -1,5 +1,5 @@
 {0 Tutorial}
-The classic web framework tutorial -- building a todo app.
+The classic web framework tutorial - building a todo app.
 
 {1 Installation}
 Ice isn't on OPAM yet as it relies on the master build of Opium. See {{: https://github.com/roddyyaga/ocoi#readme} the
@@ -9,14 +9,18 @@ readme} for details on how to install.
 Use the [ocoi] command to create a new project:
 {v $ ocoi new todo v}
 
+Or to use Reason syntax:
+{v $ ocoi new -reason todo v}
+
 This will produce a new directory [todo] containing a skeleton project with a structure described in the
 {{!projectstructure} project structure} page.
 
 In another terminal, go into the project directory and start the development server:
 {v $ cd todo && ocoi server v}
 
-Check that the server is up (on port 3000 by default) using {{: https://httpie.org/} HTTPie}:
-{v $ http localhost:3000
+Check that the server is up (on port 3000 by default) using {{: https://httpie.org/} HTTPie} (or whatever tool you
+prefer):
+{v $ http :3000
 HTTP/1.1 200 OK
 content-length: 33
 
@@ -29,14 +33,20 @@ v}
 {1 Adding a resource}
 Next we will define a resource to represent todo items. In Ice this is done by defining a type in a file in the [models]
 directory:
-{v echo "type t = {id: int; title: string; completed: bool} [@@deriving yojson]" > app/models/todo.ml v}
-We also use the deriving yojson plugin to automatically generate JSON (de)serialisation functions.
+{v $ cd todo && echo "type t = {id: int; title: string; completed: bool} [@@deriving ocoi, yojson]" > app/models/todo.ml v}
+
+We attach two preprocessors to the type definition. One is [ppx_ocoi], which generates related types (for instance [{type
+t_no_id = {title: string; completed: bool}] to represent the data used to create a new todo). The other is
+[ppx_yojson_conv], which generates JSON (de)serialisation functions.
 
 Now we would like code that implements standard CRUD functionality (allowing todos to be Created, Read, Updated and
-Deleted) and then expose these operations as a REST API. Ice can generate this from the type in [models/todo.ml]:
-{v ocoi generate scaffold models/todo.ml v}
+Deleted in a database) and then expose these operations as a REST API. Ice can generate code to do all of this from the
+type we just defined:
+{v $ ocoi generate scaffold app/models/todo.ml v}
+(or [ocoi generate scaffold --reason app/models/todo.ml] for Reason syntax).
+
 This creates two new files called [todo.ml], one in [app/queries] and the other in [app/controllers]. The [queries] file
-contains queries that use the Caqti library to persist todos to a Postgresql database. The [controllers] file defines
+contains queries that use the Caqti library to persist todos to a PostgreSQL database. The [controllers] file defines
 the interface between requests to the API and database operations or other model-layer things· Also, two files in
 [app/db/migrate] called [todo_migrate.ml] and [todo_rollback.ml] are created, which will be needed shortly.
 
@@ -127,7 +137,7 @@ content-type: application/json
 ] v}
 
 Update:
-{v $ http put localhost:3000/todos id:=1 title="Complete me!" completed := true && http get localhost:3000/todos/1
+{v $ http put localhost:3000/todos id:=1 title="Complete me (edited)!" completed := true && http get localhost:3000/todos/1
 HTTP/1.1 200 OK
 content-length: 57
 content-type: application/json

@@ -30,7 +30,7 @@ let authenticate ~check handler =
     let auth_header = req |> Request.headers |> get_authorization in
     match check auth_header req with
     | true -> handler req
-    | false -> Handler_utils.empty_response `Unauthorized
+    | false -> `String "" |> respond' ~code:`Unauthorized
     (* TODO - determine whether 401 or 403 should be returned by default.*)
     (* TODO - possibly enable both 401 and 403 responses *)
   in

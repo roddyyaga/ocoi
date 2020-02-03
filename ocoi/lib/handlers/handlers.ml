@@ -89,6 +89,7 @@ module type Crud = sig
   end
 end
 
+
 let crud (module Crud : Crud) =
   let open Crud.Api in
   let open Crud.Controller in
