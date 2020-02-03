@@ -1,0 +1,6 @@
+(library
+(name api)
+(public_name ocoi.api)
+(libraries base opium jwt)
+(preprocess (pps ppx_yojson_conv))
+)

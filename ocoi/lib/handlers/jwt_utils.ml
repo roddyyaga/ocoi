@@ -1,4 +1,4 @@
-open Core
+open Base
 
 type verify_decode_result =
   | Payload of Jwt.payload
@@ -30,7 +30,7 @@ let verify ~algorithm token =
   let recomputed_signature =
     recomputed_token |> Jwt.signature_of_t |> b64_url_encode
   in
-  given_signature = recomputed_signature
+  String.(given_signature = recomputed_signature)
 
 let verify_and_decode ~algorithm token_string =
   try

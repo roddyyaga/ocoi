@@ -1,4 +1,4 @@
-open Core
+open Base
 open Opium.Std
 
 type auth_credential = [ Cohttp.Auth.credential | `Bearer of string ]

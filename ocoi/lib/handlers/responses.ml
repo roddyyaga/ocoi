@@ -1,76 +1,6 @@
-open Base
 open Opium.Std
-
-type status_code = Cohttp.Code.status_code
-
-module Responses = struct
-  module type Json = sig
-    type t
-
-    val yojson_of_t : t -> Yojson.Safe.t
-  end
-
-  module type Unit = sig
-    type t = unit
-  end
-
-  module Unit = struct
-    type t = unit
-  end
-
-  module type No_content = Unit
-
-  module No_content = Unit
-
-  module type Int = sig
-    type t = int
-  end
-
-  module Int = struct
-    type t = int
-  end
-
-  module Created = struct
-    module type Int = Int
-
-    module Int = Int
-  end
-
-  module type Empty_code = sig
-    type t = status_code
-  end
-
-  module Empty_code = struct
-    type t = status_code
-  end
-
-  module type Empty_code_headers = sig
-    type t = status_code * (string * string) list
-  end
-
-  module Empty_code_headers = struct
-    type t = status_code * (string * string) list
-  end
-
-  module type String = sig
-    type t = string
-  end
-
-  module String = struct
-    type t = string
-  end
-
-  module type Json_list = Json
-
-  module type Json_opt = Json
-
-  module type Json_code = Json
-
-  (* TODO - see if we can make using these mandatory *)
-  module Json_list (Json : Json) = Json
-  module Json_opt (Json : Json) = Json
-  module Json_code (Json : Json) = Json
-end
+open Base
+open Api
 
 module Make = struct
   let caqti_error_responder error = error |> Caqti_error.show |> failwith
@@ -136,7 +66,7 @@ module Make = struct
     end
 
     module Created = struct
-      module Int (Responses : Responses.Created.Int) (S : Specification.S) =
+      module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
       struct
         let f id =
           let location = Printf.sprintf "%s/%d" S.path id in
@@ -202,7 +132,7 @@ module Make = struct
   end
 
   module Created = struct
-    module Int (Responses : Responses.Created.Int) (S : Specification.S) =
+    module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
     struct
       module M = Make_response.Created.Int (Responses) (S)
 
@@ -263,7 +193,7 @@ module Make = struct
     end
 
     module Created = struct
-      module Int (Responses : Responses.Created.Int) (S : Specification.S) =
+      module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
       struct
         module M = Make_response.Created.Int (Responses) (S)
 

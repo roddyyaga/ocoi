@@ -1,12 +1,11 @@
-open Api
-include Specification
+open Api.Specification
 
 module Make = struct
-  module Parameters = Endpoint_parameters.Make
-  module Responses = Endpoint_responses.Make
+  module Parameters = Parameters.Make
+  module Responses = Responses.Make
 end
 
-let handler (module S : Specification.S) input_f impl_f output_f =
+let handler (module S : Api.Specification.S) input_f impl_f output_f =
   let route = verb_to_route S.verb in
   let handler req =
     let%lwt impl_input = req |> input_f in
@@ -21,9 +20,9 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Parameters.Json
+      module Parameters : Api.Parameters.Json
 
-      module Responses : Responses.Created.Int
+      module Responses : Api.Responses.Created.Int
     end
 
     module Index : sig
@@ -31,9 +30,9 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Parameters.None
+      module Parameters : Api.Parameters.None
 
-      module Responses : Responses.Json_list
+      module Responses : Api.Responses.Json_list
     end
 
     module Show : sig
@@ -41,9 +40,9 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Parameters.One_param with type t = int
+      module Parameters : Api.Parameters.One_param with type t = int
 
-      module Responses : Responses.Json_opt
+      module Responses : Api.Responses.Json_opt
     end
 
     module Update : sig
@@ -51,9 +50,9 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Parameters.Json
+      module Parameters : Api.Parameters.Json
 
-      module Responses : Responses.No_content
+      module Responses : Api.Responses.No_content
     end
 
     module Destroy : sig
@@ -61,9 +60,9 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Parameters.One_param with type t = int
+      module Parameters : Api.Parameters.One_param with type t = int
 
-      module Responses : Responses.No_content
+      module Responses : Api.Responses.No_content
     end
   end
 

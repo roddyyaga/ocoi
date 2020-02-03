@@ -3,7 +3,7 @@
     Note that [algorithm] in this code and documentation refers to the JWT algorithm type, which specifies the key used
     for signatures as well as the choice of algorithm. Instances of it are created with [Jwt.HS256 "My secret key"]. *)
 
-open Core
+open Base
 
 (** The result from verifying and decoding a JWT token
 

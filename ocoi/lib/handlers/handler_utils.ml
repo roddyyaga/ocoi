@@ -1,4 +1,4 @@
-open Core
+open Base
 open Opium.Std
 
 let empty_response code = `String "" |> respond' ~code
