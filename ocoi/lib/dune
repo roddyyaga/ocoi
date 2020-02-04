@@ -3,6 +3,6 @@
 (public_name ocoi)
 (libraries core lwt lwt.unix opium jwt base64 str
            caqti caqti-lwt caqti-driver-postgresql
-           api handlers)
+           ocoi_api ocoi_handlers)
 (preprocess (pps lwt_ppx ppx_yojson_conv ppx_yojson))
 )

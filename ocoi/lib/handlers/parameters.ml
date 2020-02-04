@@ -1,6 +1,6 @@
 open Base
 open Opium.Std
-open Api
+open Ocoi_api
 
 module Make = struct
   module Json (Parameters : Parameters.Json) = struct
@@ -40,7 +40,7 @@ module Make = struct
     let f _req = () |> Lwt.return
   end
 
-  module One_param (Parameters : Parameters.One_param) (S : Api.Specification.S) =
+  module One_param (Parameters : Parameters.One_param) (S : Specification.S) =
   struct
     let () = assert (String.count ~f:(Char.( = ) ':') S.path = 1)
 

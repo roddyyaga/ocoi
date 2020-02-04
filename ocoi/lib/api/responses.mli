@@ -1,6 +1,6 @@
 (** Contains module types for defining responses of API endpoints, and modules that implement these types when relevant.
 
-    For more details, see {!Handlers__.Responses.Make}.*)
+    For more details, see {!Ocoi_handlers__.Responses.Make}.*)
 
 open Base
 
@@ -77,14 +77,21 @@ end
 module type Json_list = Json
 (** {!module-type:Json_list}, {!module-type:Json_opt} and {!module-type:Json_code} are aliases for {!module-type:Json},
  * and the functors with these names don't do anything. But they should still be used for endpoints will be used with
- * {!Handlers__.Responses.Make.Json_list} and similar for documentation purposes and to enable (currently hypothetical) *)
+ * {!Ocoi_handlers__.Responses.Make.Json_list} and similar for documentation purposes and to enable (currently hypothetical) *)
 
 module type Json_opt = Json
 
 module type Json_code = Json
 
-module Json_list (Json : Json) : Json
+module Json_list (Some_json : Json) : Json with type t = Some_json.t
 
-module Json_opt (Json : Json) : Json
+module Json_opt (Some_json : Json) : Json with type t = Some_json.t
 
-module Json_code (Json : Json) : Json
+module Json_code (Some_json : Json) : Json with type t = Some_json.t
+
+(* For endpoints with implementations that return a piece of JSON directly ({!module-type:Json} is for endpoints with implementations that return something such as a record that can be encoded as JSON) *)
+module type Raw_json = sig
+  type t = Yojson.t
+end
+
+module Raw_json : Raw_json

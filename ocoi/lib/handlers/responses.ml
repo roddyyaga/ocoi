@@ -1,6 +1,6 @@
 open Opium.Std
 open Base
-open Api
+open Ocoi_api
 
 module Make = struct
   let caqti_error_responder error = error |> Caqti_error.show |> failwith
@@ -66,7 +66,7 @@ module Make = struct
     end
 
     module Created = struct
-      module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
+      module Int (Responses : Responses.Created.Int) (S : Specification.S) =
       struct
         let f id =
           let location = Printf.sprintf "%s/%d" S.path id in
@@ -79,6 +79,17 @@ module Make = struct
 
     module No_content (Responses : Responses.No_content) = struct
       let f () = `String "" |> respond' ~code:`No_content
+    end
+
+    module Raw_json (Responses : Responses.Raw_json) = struct
+      let f content = `Json content |> respond'
+    end
+
+    module Raw_json_opt (Responses : Responses.Raw_json) = struct
+      let f content_opt =
+        match content_opt with
+        | Some content -> `Json content |> respond'
+        | None -> `String "" |> respond' ~code:`Not_found
     end
   end
 
@@ -117,6 +128,22 @@ module Make = struct
       make_result_response M.f ?error_responder content_result_lwt
   end
 
+  module Raw = struct
+    module Json (Responses : Responses.Raw_json) = struct
+      module M = Make_response.Raw_json (Responses)
+
+      let f ?error_responder content_result_lwt =
+        make_result_response M.f ?error_responder content_result_lwt
+    end
+
+    module Json_opt (Responses : Responses.Raw_json) = struct
+      module M = Make_response.Raw_json_opt (Responses)
+
+      let f ?error_responder content_result_lwt =
+        make_result_response M.f ?error_responder content_result_lwt
+    end
+  end
+
   module Empty_code (Responses : Responses.Empty_code) = struct
     module M = Make_response.Empty_code (Responses)
 
@@ -132,7 +159,7 @@ module Make = struct
   end
 
   module Created = struct
-    module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
+    module Int (Responses : Responses.Created.Int) (S : Specification.S) =
     struct
       module M = Make_response.Created.Int (Responses) (S)
 
@@ -193,7 +220,7 @@ module Make = struct
     end
 
     module Created = struct
-      module Int (Responses : Responses.Created.Int) (S : Api.Specification.S) =
+      module Int (Responses : Responses.Created.Int) (S : Specification.S) =
       struct
         module M = Make_response.Created.Int (Responses) (S)
 

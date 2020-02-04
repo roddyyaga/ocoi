@@ -1,6 +1,6 @@
 (library
-(name handlers)
+(name ocoi_handlers)
 (public_name ocoi.handlers)
-(libraries base caqti api)
+(libraries base caqti ocoi_api)
 (preprocess (pps lwt_ppx ppx_yojson))
 )

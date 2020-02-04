@@ -70,3 +70,11 @@ module type Json_code = Json
 module Json_list (Json : Json) = Json
 module Json_opt (Json : Json) = Json
 module Json_code (Json : Json) = Json
+
+module type Raw_json = sig
+  type t = Yojson.t
+end
+
+module Raw_json = struct
+  type t = Yojson.t
+end

@@ -45,44 +45,20 @@ type we just defined:
 {v $ ocoi generate scaffold app/models/todo.ml v}
 (or [ocoi generate scaffold --reason app/models/todo.ml] for Reason syntax).
 
-This creates two new files called [todo.ml], one in [app/queries] and the other in [app/controllers]. The [queries] file
-contains queries that use the Caqti library to persist todos to a PostgreSQL database. The [controllers] file defines
-the interface between requests to the API and database operations or other model-layer things· Also, two files in
-[app/db/migrate] called [todo_migrate.ml] and [todo_rollback.ml] are created, which will be needed shortly.
+This creates several new files: [app/queries/todo.ml], [app/controllers/todo.ml], [app/db/migrate/todo_migrate.ml] and
+[app/db/migrate/todo_migrate.ml]. It also edits [app/handlers.ml]. The roles of these files are explained in
+{!details}.
 
 {1 Using the todo resource}
-{2 Creating handlers for CRUD operations}
-We now have code that implements CRUD operations for todos, but it is not exposed as an API yet. To do this, edit
-[app/main.ml] by changing it to this:
-
-{[open Core
-open Opium.Std
-open Controllers
-
-let hello_world =
-  get "/" (fun _ ->
-      `String "Hello world!\n\nfrom OCaml\n     Ice" |> respond')
-
-let _ =
-  let app = Ocoi.App.base in
-  let reporter = Logs_fmt.reporter () in
-  Logs.set_reporter reporter ;
-  Logs.set_level (Some Logs.Info) ;
-  let app =
-    app
-    |> Ocoi.Controllers.register_crud "/todos" (module Todo.Crud)
-  in
-  app |> App.run_command]}
-
 Check out the todos resource:
 {v $ http localhost:3000/todos v}
 
 You should get an error saying that the [todos] relation doesn't exist. This is expected because we haven't created the
-table for todos yet. This can be done by running the relevant migration:
+database table for todos yet. This can be done by running the relevant migration:
 {v $ ocoi db migrate todo
 Migration successful. v}
 
-(You may instead get a [Connection failure] error, which means Postgres is not running. If you have docker installed you
+(You may instead get a [Connection failure] error, which means Postgres is not running. If you have Docker installed you
 can start it with [docker run -t -p 5432:5432 -e POSTGRES_PASSWORD=12345 postgres].)
 
 Following the migration, doing
@@ -152,3 +128,5 @@ And Delete:
 {v $ http delete localhost:3000/todos/1 && http get localhost:3000/todos/1
 HTTP/1.1 404 Not Found
 content-length: 0 v}
+
+{1:details Details}
