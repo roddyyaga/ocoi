@@ -36,6 +36,7 @@ module Created = struct
   module Int = Implementations.Int
 end
 
+(* TODO - reorganise Empty_codes *)
 module type Empty_code = sig
   type t = status_code
 end
@@ -77,4 +78,12 @@ end
 
 module Raw_json = struct
   type t = Yojson.t
+end
+
+module type Empty_opt = sig
+  val success : status_code
+
+  val failure : status_code
+
+  type t = unit option
 end

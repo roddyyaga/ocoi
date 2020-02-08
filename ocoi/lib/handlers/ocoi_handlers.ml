@@ -40,7 +40,7 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Ocoi_api.Parameters.One_param with type t = int
+      module Parameters : Ocoi_api.Parameters.Path.One with type t = int
 
       module Responses : Ocoi_api.Responses.Json_opt
     end
@@ -60,7 +60,7 @@ module type Crud = sig
 
       val path : string
 
-      module Parameters : Ocoi_api.Parameters.One_param with type t = int
+      module Parameters : Ocoi_api.Parameters.Path.One with type t = int
 
       module Responses : Ocoi_api.Responses.No_content
     end
@@ -103,7 +103,7 @@ let crud (module Crud : Crud) =
     handler (module Index) P.f index R.f
   in
   let show =
-    let module P = Make.Parameters.One_param (Show.Parameters) (Show) in
+    let module P = Make.Parameters.Path.One (Show.Parameters) (Show) in
     let module R = Make.Responses.Json_opt (Show.Responses) in
     handler (module Show) P.f show R.f
   in
@@ -113,7 +113,7 @@ let crud (module Crud : Crud) =
     handler (module Update) P.f update R.f
   in
   let destroy =
-    let module P = Make.Parameters.One_param (Destroy.Parameters) (Destroy) in
+    let module P = Make.Parameters.Path.One (Destroy.Parameters) (Destroy) in
     let module R = Make.Responses.No_content (Destroy.Responses) in
     handler (module Destroy) P.f destroy R.f
   in

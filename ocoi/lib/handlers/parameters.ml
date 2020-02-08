@@ -40,17 +40,43 @@ module Make = struct
     let f _req = () |> Lwt.return
   end
 
-  module One_param (Parameters : Parameters.One_param) (S : Specification.S) =
-  struct
-    let () = assert (String.count ~f:(Char.( = ) ':') S.path = 1)
+  module Path = struct
+    let get_one_param_name (module S : Specification.S) =
+      let () = assert (String.count ~f:(Char.( = ) ':') S.path = 1) in
 
-    let name =
-      (* Find the only occurrence of [:some_var] in the path *)
-      let pattern = Str.regexp {re|.*:\([^/]*\)\(/\|$\)|re} in
-      let () = assert (Str.string_match pattern S.path 0) in
-      Str.matched_group 1 S.path
+      let name =
+        (* Find the only occurrence of [:some_var] in the path *)
+        let pattern = Str.regexp {re|.*:\([^/]*\)\(/\|$\)|re} in
+        let () = assert (Str.string_match pattern S.path 0) in
+        Str.matched_group 1 S.path
+      in
+      name
 
-    let f req = Parameters.of_string (param req name) |> Lwt.return
+    module One (Parameters : Parameters.Path.One) (S : Specification.S) = struct
+      let name = get_one_param_name (module S)
+
+      let f req = Parameters.of_string (param req name) |> Lwt.return
+    end
+
+    module One_and = struct
+      module Query
+          (Parameters : Parameters.Path.One_and.Query)
+          (S : Specification.S) =
+      struct
+        let name = get_one_param_name (module S)
+
+        let f req =
+          let path_parameter_value =
+            Parameters.path_of_string (param req name)
+          in
+          let query_parameter_values =
+            List.map
+              ~f:(Uri.get_query_param (Request.uri req))
+              Parameters.query_fields
+          in
+          (path_parameter_value, query_parameter_values) |> Lwt.return
+      end
+    end
   end
 
   module Custom (Parameters : Parameters.Custom) = struct

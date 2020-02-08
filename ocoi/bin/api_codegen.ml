@@ -35,7 +35,7 @@ module Show = struct
 
   let path = base_path ^ "/:id"
 
-  module Parameters = Parameters.One_param.Int
+  module Parameters = Parameters.Path.One.Int
   module Responses = Responses.Json_opt (Models.%s)
 end
 
@@ -53,7 +53,7 @@ module Destroy = struct
 
   let path = base_path ^ "/:id"
 
-  module Parameters = Parameters.One_param.Int
+  module Parameters = Parameters.Path.One.Int
   module Responses = Responses.No_content
 end|ocaml}
     (Utils.pluralize module_name)

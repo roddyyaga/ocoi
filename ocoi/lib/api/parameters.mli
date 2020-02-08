@@ -26,30 +26,45 @@ module None : sig
   type t = unit
 end
 
-(** For endpoints with a single parameter in the path of the URL, for example [id] in [example.com/things/:id]
-
-    {b Not} for endpoints with a single query parameters (query parameters are not yet implemented).
-    The general case of multiple path parameters is also not yet implemented, but will be. *)
-module type One_param = sig
-  type t
-
-  val of_string : string -> t
-end
-
-(** Contains implementations of {!module-type:One_param} for common types *)
-module One_param : sig
-  (** For integer parameters *)
-  module Int : sig
-    type t = int
+(** For endpoints parameters in the path of the URL, for example [id] in [example.com/things/:id] *)
+module Path : sig
+  (** For endpoints where the only parameter is a single path parameter.
+      Multiple path parameters will be implemented in the future. *)
+  module type One = sig
+    type t
 
     val of_string : string -> t
   end
 
-  (** For string parameters *)
-  module String : sig
-    type t = string
+  (** Contains implementations of {!module-type:One} for common types *)
+  module One : sig
+    (** For integer parameters *)
+    module Int : sig
+      type t = int
 
-    val of_string : string -> t
+      val of_string : string -> t
+    end
+
+    (** For string parameters *)
+    module String : sig
+      type t = string
+
+      val of_string : 'a -> 'a
+    end
+  end
+
+  (** For endpoints with a single path parameter and some other non-path parameters *)
+  module One_and : sig
+    (** For endpoints with a single path parameter and some query parameters *)
+    module type Query = sig
+      type path
+
+      val query_fields : string list
+
+      val path_of_string : string -> path
+
+      type t = path * string option list
+    end
   end
 end
 

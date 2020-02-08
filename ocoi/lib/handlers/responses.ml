@@ -86,10 +86,17 @@ module Make = struct
     end
 
     module Raw_json_opt (Responses : Responses.Raw_json) = struct
-      let f content_opt =
+      let f ~code content_opt =
         match content_opt with
         | Some content -> `Json content |> respond'
-        | None -> `String "" |> respond' ~code:`Not_found
+        | None -> `String "" |> respond' ~code
+    end
+
+    module Empty_opt (Responses : Responses.Empty_opt) = struct
+      let f unit_opt =
+        match unit_opt with
+        | Some () -> `String "" |> respond' ~code:Responses.success
+        | None -> `String "" |> respond' ~code:Responses.failure
     end
   end
 
@@ -136,11 +143,24 @@ module Make = struct
         make_result_response M.f ?error_responder content_result_lwt
     end
 
-    module Json_opt (Responses : Responses.Raw_json) = struct
-      module M = Make_response.Raw_json_opt (Responses)
+    module Json_opt = struct
+      module Not_found (Responses : Responses.Raw_json) = struct
+        module M = Make_response.Raw_json_opt (Responses)
 
-      let f ?error_responder content_result_lwt =
-        make_result_response M.f ?error_responder content_result_lwt
+        let f ?error_responder content_result_lwt =
+          make_result_response
+            (M.f ~code:`Not_found)
+            ?error_responder content_result_lwt
+      end
+
+      module Unauthorized (Responses : Responses.Raw_json) = struct
+        module M = Make_response.Raw_json_opt (Responses)
+
+        let f ?error_responder content_result_lwt =
+          make_result_response
+            (M.f ~code:`Unauthorized)
+            ?error_responder content_result_lwt
+      end
     end
   end
 
@@ -170,6 +190,13 @@ module Make = struct
 
   module No_content (Responses : Responses.No_content) = struct
     module M = Make_response.No_content (Responses)
+
+    let f ?error_responder content_result_lwt =
+      make_result_response M.f ?error_responder content_result_lwt
+  end
+
+  module Empty_opt (Responses : Responses.Empty_opt) = struct
+    module M = Make_response.Empty_opt (Responses)
 
     let f ?error_responder content_result_lwt =
       make_result_response M.f ?error_responder content_result_lwt
@@ -230,6 +257,12 @@ module Make = struct
 
     module No_content (Responses : Responses.No_content) = struct
       module M = Make_response.No_content (Responses)
+
+      let f = make_not_result_response M.f
+    end
+
+    module Empty_opt (Responses : Responses.Empty_opt) = struct
+      module M = Make_response.Empty_opt (Responses)
 
       let f = make_not_result_response M.f
     end

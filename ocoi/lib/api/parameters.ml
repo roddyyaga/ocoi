@@ -24,23 +24,37 @@ module None = struct
   type t = unit
 end
 
-module type One_param = sig
-  type t
+module Path = struct
+  module type One = sig
+    type t
 
-  val of_string : string -> t
-end
-
-module One_param = struct
-  module Int = struct
-    type t = int
-
-    let of_string = Int.of_string
+    val of_string : string -> t
   end
 
-  module String = struct
-    type t = string
+  module One = struct
+    module Int = struct
+      type t = int
 
-    let of_string = Fn.id
+      let of_string = Int.of_string
+    end
+
+    module String = struct
+      type t = string
+
+      let of_string = Fn.id
+    end
+  end
+
+  module One_and = struct
+    module type Query = sig
+      type path
+
+      val query_fields : string list
+
+      val path_of_string : string -> path
+
+      type t = path * string option list
+    end
   end
 end
 

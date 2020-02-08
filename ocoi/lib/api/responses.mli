@@ -4,7 +4,7 @@
 
 open Base
 
-type status_code
+type status_code = Cohttp.Code.status_code
 (** Represents an HTTP status code *)
 
 (** Defines simple modules and module types that used as the basis for other response specification modules/types.
@@ -95,3 +95,11 @@ module type Raw_json = sig
 end
 
 module Raw_json : Raw_json
+
+module type Empty_opt = sig
+  val success : status_code
+
+  val failure : status_code
+
+  type t = unit option
+end
