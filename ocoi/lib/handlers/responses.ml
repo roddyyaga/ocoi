@@ -3,7 +3,8 @@ open Base
 open Ocoi_api
 
 module Make = struct
-  let caqti_error_responder error = error |> Caqti_error.show |> failwith
+  let caqti_error_responder error =
+    `String (error |> Caqti_error.show) |> respond' ~code:`Internal_server_error
 
   let get_default_error_responder provided_responder =
     Option.value provided_responder ~default:caqti_error_responder
@@ -106,7 +107,7 @@ module Make = struct
     let response =
       match content_result with
       | Ok content -> response_f content
-      | Error error -> error_responder error |> respond'
+      | Error error -> error_responder error
     in
     response
 
