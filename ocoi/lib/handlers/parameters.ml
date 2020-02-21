@@ -7,12 +7,9 @@ module Make = struct
     let f req =
       (* TODO catch Yojson.Json_error here (and maybe more?) *)
       let%lwt json = App.json_of_body_exn req in
-      let j =
-        match json |> Parameters.t_of_yojson' with
-        | Ok x -> x
-        | Error _ -> failwith "erro"
-      in
-      j |> Lwt.return
+      match json |> Parameters.t_of_yojson' with
+      | Ok x -> x |> Lwt.return
+      | Error _ -> failwith "Error parsing JSON"
   end
 
   module Json_jwt (Parameters : Parameters.Jwt_json) = struct
@@ -21,7 +18,7 @@ module Make = struct
       let j =
         match json |> Parameters.parameters_of_yojson' with
         | Ok x -> x
-        | Error _ -> failwith "erro"
+        | Error _ -> failwith "Error decoding JSON"
       in
       let jwt =
         let token_opt = Auth.get_token req in
@@ -31,9 +28,28 @@ module Make = struct
           Jwt_utils.verify_and_decode ~algorithm token
         with
         | Some (Payload p) -> p
-        | _ -> failwith "erro"
+        | Some SignatureMismatch -> failwith "Signature mismatch"
+        | Some FormatError -> failwith "Format error"
+        | None -> failwith "No JWT token"
       in
       (j, jwt) |> Lwt.return
+  end
+
+  module Jwt (Parameters : Parameters.Jwt) = struct
+    let f ~algorithm req =
+      let jwt =
+        let token_opt = Auth.get_token req in
+        let open Option in
+        match
+          token_opt >>| fun token ->
+          Jwt_utils.verify_and_decode ~algorithm token
+        with
+        | Some (Payload p) -> p
+        | Some SignatureMismatch -> failwith "Signature mismatch"
+        | Some FormatError -> failwith "Format error"
+        | None -> failwith "No JWT token"
+      in
+      jwt |> Lwt.return
   end
 
   module None (Parameters : Parameters.None) = struct

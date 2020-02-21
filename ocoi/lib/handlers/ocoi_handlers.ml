@@ -1,3 +1,4 @@
+open Opium.Std
 open Ocoi_api.Specification
 
 module Make = struct
@@ -8,8 +9,14 @@ end
 let handler (module S : Ocoi_api.Specification.S) input_f impl_f output_f =
   let route = verb_to_route S.verb in
   let handler req =
-    let%lwt impl_input = req |> input_f in
-    impl_input |> impl_f |> output_f
+    try
+      let%lwt impl_input = req |> input_f in
+      impl_input |> impl_f |> output_f
+    with e ->
+      let msg = Printexc.to_string e and stack = Printexc.get_backtrace () in
+      Logs.err (fun m -> m "Uncaught exception: %s\n%s" msg stack);
+      `String "An error occurred, check server logs for details"
+      |> respond' ~code:`Internal_server_error
   in
   route S.path handler
 

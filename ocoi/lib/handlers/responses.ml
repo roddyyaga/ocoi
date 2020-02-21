@@ -4,10 +4,41 @@ open Ocoi_api
 
 module Make = struct
   let caqti_error_responder error =
-    `String (error |> Caqti_error.show) |> respond' ~code:`Internal_server_error
+    let error_message = error |> Caqti_error.show in
+    Logs.err (fun m -> m "%s" error_message);
+    `String "See server logs for error details"
+    |> respond' ~code:`Internal_server_error
+
+  let query_error_message (error : Caqti_error.query_error) =
+    let open Caqti_error in
+    pp_msg Caml.Format.str_formatter error.msg;
+    Caml.Format.flush_str_formatter ()
+
+  let handle_request_failed msg_string =
+    let trimmed =
+      msg_string |> String.chop_prefix_exn ~prefix:"ERROR:" |> String.lstrip
+    in
+    match
+      String.is_prefix ~prefix:"duplicate key value violates unique constraint"
+        trimmed
+    with
+    | true -> `String "" |> respond' ~code:`Conflict
+    | false ->
+        `String "See server logs for error details"
+        |> respond' ~code:`Internal_server_error
+
+  let caqti_error_responder_duplicate_409 error =
+    Logs.err (fun m -> m "%s" (Caqti_error.show error));
+    match error with
+    | `Request_failed err ->
+        let msg_string = query_error_message err in
+        handle_request_failed msg_string
+    | _ ->
+        `String "See server logs for error details"
+        |> respond' ~code:`Internal_server_error
 
   let get_default_error_responder provided_responder =
-    Option.value provided_responder ~default:caqti_error_responder
+    Option.value provided_responder ~default:caqti_error_responder_duplicate_409
 
   module Make_response = struct
     module type Make_sig = functor

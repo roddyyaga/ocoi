@@ -65,3 +65,12 @@ module type Custom = sig
 end
 
 module Json_list (Json : Json) = Json
+
+(* Must be below Jwt_json... *)
+module type Jwt = sig
+  type t = Jwt.payload
+end
+
+module Jwt = struct
+  type t = Jwt.payload
+end

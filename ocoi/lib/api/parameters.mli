@@ -74,3 +74,9 @@ module type Custom = sig
 
   val f : Opium.Std.Request.t -> t
 end
+
+module type Jwt = sig
+  type t = Jwt.payload
+end
+
+module Jwt : Jwt
