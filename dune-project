@@ -23,6 +23,7 @@ caqti-driver-postgresql
 fileutils
 lwt_ppx
 ppx_yojson_conv
+ppx_yojson
 jwt
 base64
 )
