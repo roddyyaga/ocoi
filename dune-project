@@ -24,8 +24,11 @@ fileutils
 lwt_ppx
 ppx_yojson_conv
 ppx_yojson
+ppx_jane
 jwt
 base64
+ppxlib
+str
 )
 )
 
