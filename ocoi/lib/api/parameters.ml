@@ -58,6 +58,22 @@ module Path = struct
   end
 end
 
+module type Jwt_path_one = sig
+  type parameters
+
+  val of_string : string -> parameters
+
+  type t = parameters * Jwt.payload
+end
+
+module Jwt_path_one_int = struct
+  type parameters = int
+
+  let of_string = Int.of_string
+
+  type t = parameters * Jwt.payload
+end
+
 module type Custom = sig
   type t
 

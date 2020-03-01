@@ -68,6 +68,22 @@ module Path : sig
   end
 end
 
+module type Jwt_path_one = sig
+  type parameters
+
+  val of_string : string -> parameters
+
+  type t = parameters * Jwt.payload
+end
+
+module Jwt_path_one_int : sig
+  type parameters = int
+
+  val of_string : string -> parameters
+
+  type t = parameters * Jwt.payload
+end
+
 (** For custom parameter specifications that supply some function [f] for producing the parameter type from an Opium request *)
 module type Custom = sig
   type t

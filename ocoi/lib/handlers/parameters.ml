@@ -2,6 +2,17 @@ open Base
 open Opium.Std
 open Ocoi_api
 
+let get_jwt req ~algorithm =
+  let token_opt = Auth.get_token req in
+  let open Option in
+  match
+    token_opt >>| fun token -> Jwt_utils.verify_and_decode ~algorithm token
+  with
+  | Some (Payload p) -> p
+  | Some SignatureMismatch -> failwith "Signature mismatch"
+  | Some FormatError -> failwith "Format error"
+  | None -> failwith "No JWT token"
+
 module Make = struct
   module Json (Parameters : Parameters.Json) = struct
     let f req =
@@ -36,20 +47,7 @@ module Make = struct
   end
 
   module Jwt (Parameters : Parameters.Jwt) = struct
-    let f ~algorithm req =
-      let jwt =
-        let token_opt = Auth.get_token req in
-        let open Option in
-        match
-          token_opt >>| fun token ->
-          Jwt_utils.verify_and_decode ~algorithm token
-        with
-        | Some (Payload p) -> p
-        | Some SignatureMismatch -> failwith "Signature mismatch"
-        | Some FormatError -> failwith "Format error"
-        | None -> failwith "No JWT token"
-      in
-      jwt |> Lwt.return
+    let f ~algorithm req = get_jwt ~algorithm req |> Lwt.return
   end
 
   module None (Parameters : Parameters.None) = struct
@@ -93,6 +91,18 @@ module Make = struct
           (path_parameter_value, query_parameter_values) |> Lwt.return
       end
     end
+  end
+
+  module Path_one_jwt
+      (Parameters : Parameters.Jwt_path_one)
+      (S : Specification.S) =
+  struct
+    let name = Path.get_one_param_name (module S)
+
+    let f ~algorithm req =
+      let jwt = get_jwt ~algorithm req in
+      let param_value = Parameters.of_string (param req name) in
+      (param_value, jwt) |> Lwt.return
   end
 
   module Custom (Parameters : Parameters.Custom) = struct
