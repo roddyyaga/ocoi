@@ -100,7 +100,7 @@ let crud (module Crud : Crud) =
   let open Crud.Api in
   let open Crud.Controller in
   let create =
-    let module P = Make.Parameters.Json (Create.Parameters) in
+    let module P = Make.Parameters.Json.Only (Create.Parameters) in
     let module R = Make.Responses.Created.Int (Create.Responses) (Create) in
     handler (module Create) P.f create R.f
   in
@@ -110,17 +110,18 @@ let crud (module Crud : Crud) =
     handler (module Index) P.f index R.f
   in
   let show =
-    let module P = Make.Parameters.Path.One (Show.Parameters) (Show) in
+    let module P = Make.Parameters.Path.One.Only (Show.Parameters) (Show) in
     let module R = Make.Responses.Json_opt (Show.Responses) in
     handler (module Show) P.f show R.f
   in
   let update =
-    let module P = Make.Parameters.Json (Update.Parameters) in
+    let module P = Make.Parameters.Json.Only (Update.Parameters) in
     let module R = Make.Responses.No_content (Update.Responses) in
     handler (module Update) P.f update R.f
   in
   let destroy =
-    let module P = Make.Parameters.Path.One (Destroy.Parameters) (Destroy) in
+    let module P = Make.Parameters.Path.One.Only (Destroy.Parameters) (Destroy)
+    in
     let module R = Make.Responses.No_content (Destroy.Responses) in
     handler (module Destroy) P.f destroy R.f
   in

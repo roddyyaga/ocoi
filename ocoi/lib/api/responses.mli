@@ -7,71 +7,18 @@ open Base
 type status_code = Cohttp.Code.status_code
 (** Represents an HTTP status code *)
 
-(** Defines simple modules and module types that used as the basis for other response specification modules/types.
-
-    For example, {!module-type:No_content} is an alias for {!module-type:Implementations.Unit}. *)
-module Implementations : sig
-  module type Unit = sig
-    type t = unit
-  end
-
-  module Unit : sig
-    type t = unit
-  end
-
-  module type Int = sig
-    type t = int
-  end
-
-  module Int : sig
-    type t = int
-  end
+(** For endpoints that return an empty response with a [204 No content] code *)
+module type No_content = sig
+  type t = unit
 end
+
+module No_content : No_content
 
 (** For endpoints that return a piece of JSON *)
 module type Json = sig
   type t
 
   val yojson_of_t : t -> Yojson.Safe.t
-end
-
-module type No_content = Implementations.Unit
-(** For endpoints that return an empty response with a [204 No content] code *)
-
-module No_content = Implementations.Unit
-
-(** For endpoints that return an empty response and a [Location] header with a URL with a single path parameter *)
-module Created : sig
-  module type Int = Implementations.Int
-
-  module Int = Implementations.Int
-end
-
-(* For endpoints that return an empty response with a certain status code *)
-module type Empty_code = sig
-  type t = status_code
-end
-
-module Empty_code : sig
-  type t = status_code
-end
-
-(* For endpoints that return an empty response with a certain status code and set of headers *)
-module type Empty_code_headers = sig
-  type t = status_code * (string * string) sexp_list
-end
-
-module Empty_code_headers : sig
-  type t = status_code * (string * string) sexp_list
-end
-
-(* For endpoints that return a string *)
-module type String = sig
-  type t = string
-end
-
-module String : sig
-  type t = string
 end
 
 module type Json_list = Json
@@ -90,16 +37,47 @@ module Json_opt (Some_json : Json) : Json with type t = Some_json.t
 module Json_code (Some_json : Json) : Json with type t = Some_json.t
 
 (* For endpoints with implementations that return a piece of JSON directly ({!module-type:Json} is for endpoints with implementations that return something such as a record that can be encoded as JSON) *)
-module type Raw_json = sig
-  type t = Yojson.t
+module Raw_json : Json
+
+(** For endpoints that return an empty response and a [Location] header with a URL with a single path parameter *)
+module Created : sig
+  module type Int = sig
+    type t = int
+  end
+
+  module Int : Int
 end
 
-module Raw_json : Raw_json
+module Empty : sig
+  (** For endpoints that return an empty response with a certain status code *)
+  module type Code = sig
+    type t = status_code
+  end
 
-module type Empty_opt = sig
-  val success : status_code
+  module Code : sig
+    module Only : Code
 
-  val failure : status_code
+    (** For endpoints that return an empty response with a certain status code and set of headers *)
+    module type Headers = sig
+      type t = status_code * (string * string) sexp_list
+    end
 
-  type t = unit option
+    module Headers : Headers
+  end
+
+  (** For endpoints that return an empty response with one of two status codes indicating success or failure. *)
+  module type Bool = sig
+    val success : status_code
+
+    val failure : status_code
+
+    type t = bool
+  end
 end
+
+(* For endpoints that return a string *)
+module type String = sig
+  type t = string
+end
+
+module String : String

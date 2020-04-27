@@ -2,23 +2,11 @@ open Base
 
 type status_code = Cohttp.Code.status_code
 
-module Implementations = struct
-  module type Unit = sig
-    type t = unit
-  end
-
-  module Unit = struct
-    type t = unit
-  end
-
-  module type Int = sig
-    type t = int
-  end
-
-  module Int = struct
-    type t = int
-  end
+module type No_content = sig
+  type t = unit
 end
+
+module No_content = Unit
 
 module type Json = sig
   type t
@@ -26,31 +14,42 @@ module type Json = sig
   val yojson_of_t : t -> Yojson.Safe.t
 end
 
-module type No_content = Implementations.Unit
-
-module No_content = Implementations.Unit
-
 module Created = struct
-  module type Int = Implementations.Int
+  module type Int = sig
+    type t = int
+  end
 
-  module Int = Implementations.Int
+  module Int = Int
 end
 
-(* TODO - reorganise Empty_codes *)
-module type Empty_code = sig
-  type t = status_code
-end
+module Empty = struct
+  (* TODO - reorganise Empty_codes *)
+  module type Code = sig
+    type t = status_code
+  end
 
-module Empty_code = struct
-  type t = status_code
-end
+  module Code = struct
+    module Only = struct
+      type t = status_code
+    end
 
-module type Empty_code_headers = sig
-  type t = status_code * (string * string) list
-end
+    module type Headers = sig
+      type t = status_code * (string * string) list
+    end
 
-module Empty_code_headers = struct
-  type t = status_code * (string * string) list
+    module Headers = struct
+      type t = status_code * (string * string) list
+    end
+  end
+
+  (** For endpoints that return an empty response with one of two status codes indicating success or failure. *)
+  module type Bool = sig
+    val success : status_code
+
+    val failure : status_code
+
+    type t = bool
+  end
 end
 
 module type String = sig
@@ -72,18 +71,8 @@ module Json_list (Json : Json) = Json
 module Json_opt (Json : Json) = Json
 module Json_code (Json : Json) = Json
 
-module type Raw_json = sig
-  type t = Yojson.t
-end
-
 module Raw_json = struct
-  type t = Yojson.t
-end
+  type t = Yojson.Safe.t
 
-module type Empty_opt = sig
-  val success : status_code
-
-  val failure : status_code
-
-  type t = unit option
+  let yojson_of_t = Fn.id
 end

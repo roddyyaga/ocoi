@@ -1,13 +1,12 @@
 open Base
 open Opium.Std
 
-module type Jwt_json = sig
-  type parameters
+module type None = sig
+  type t = unit
+end
 
-  val parameters_of_yojson' :
-    Yojson.Safe.t -> parameters Ppx_yojson_conv_lib.Yojson_conv.Result.t
-
-  type t = parameters * Jwt.payload
+module None = struct
+  type t = unit
 end
 
 module type Json = sig
@@ -16,12 +15,15 @@ module type Json = sig
   val t_of_yojson' : Yojson.Safe.t -> t Ppx_yojson_conv_lib.Yojson_conv.Result.t
 end
 
-module type None = sig
-  type t = unit
-end
+module Json = struct
+  module type Jwt = sig
+    type parameters
 
-module None = struct
-  type t = unit
+    val parameters_of_yojson' :
+      Yojson.Safe.t -> parameters Ppx_yojson_conv_lib.Yojson_conv.Result.t
+
+    type t = parameters * Jwt.payload
+  end
 end
 
 module Path = struct
@@ -32,20 +34,6 @@ module Path = struct
   end
 
   module One = struct
-    module Int = struct
-      type t = int
-
-      let of_string = Int.of_string
-    end
-
-    module String = struct
-      type t = string
-
-      let of_string = Fn.id
-    end
-  end
-
-  module One_and = struct
     module type Query = sig
       type path
 
@@ -55,38 +43,27 @@ module Path = struct
 
       type t = path * string option list
     end
+
+    module type Jwt = sig
+      type path
+
+      val of_string : string -> path
+
+      type t = path * Jwt.payload
+    end
   end
 end
 
-module type Jwt_path_one = sig
-  type parameters
-
-  val of_string : string -> parameters
-
-  type t = parameters * Jwt.payload
-end
-
-module Jwt_path_one_int = struct
-  type parameters = int
-
-  let of_string = Int.of_string
-
-  type t = parameters * Jwt.payload
-end
-
-module type Custom = sig
-  type t
-
-  val f : Request.t -> t
-end
-
-module Json_list (Json : Json) = Json
-
-(* Must be below Jwt_json... *)
 module type Jwt = sig
   type t = Jwt.payload
 end
 
 module Jwt = struct
   type t = Jwt.payload
+end
+
+module type Custom = sig
+  type t
+
+  val f : Request.t -> t
 end

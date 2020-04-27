@@ -49,6 +49,10 @@ module Make = struct
       val f : Responses.t -> Response.t Lwt.t
     end
 
+    module No_content (Responses : Responses.No_content) = struct
+      let f () = `String "" |> respond' ~code:`No_content
+    end
+
     module Json (Responses : Responses.Json) = struct
       let f content = `Json (content |> Responses.yojson_of_t) |> respond'
     end
@@ -83,20 +87,6 @@ module Make = struct
         `Json content_json |> respond' ~code
     end
 
-    module Empty_code (Responses : Responses.Empty_code) = struct
-      let f code = `String "" |> respond' ~code
-    end
-
-    module Empty_code_headers (Responses : Responses.Empty_code_headers) =
-    struct
-      let f (code, headers) =
-        `String "" |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
-    end
-
-    module String (Responses : Responses.String) = struct
-      let f s = `String s |> respond'
-    end
-
     module Created = struct
       module Int (Responses : Responses.Created.Int) (S : Specification.S) =
       struct
@@ -109,26 +99,29 @@ module Make = struct
       end
     end
 
-    module No_content (Responses : Responses.No_content) = struct
-      let f () = `String "" |> respond' ~code:`No_content
+    module Empty = struct
+      module Code = struct
+        module Only (Responses : Responses.Empty.Code) = struct
+          let f code = `String "" |> respond' ~code
+        end
+
+        module Headers (Responses : Responses.Empty.Code.Headers) = struct
+          let f (code, headers) =
+            `String ""
+            |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
+        end
+      end
+
+      module Bool (Responses : Responses.Empty.Bool) = struct
+        let f unit_opt =
+          match unit_opt with
+          | true -> `String "" |> respond' ~code:Responses.success
+          | false -> `String "" |> respond' ~code:Responses.failure
+      end
     end
 
-    module Raw_json (Responses : Responses.Raw_json) = struct
-      let f content = `Json content |> respond'
-    end
-
-    module Raw_json_opt (Responses : Responses.Raw_json) = struct
-      let f ~code content_opt =
-        match content_opt with
-        | Some content -> `Json content |> respond'
-        | None -> `String "" |> respond' ~code
-    end
-
-    module Empty_opt (Responses : Responses.Empty_opt) = struct
-      let f unit_opt =
-        match unit_opt with
-        | Some () -> `String "" |> respond' ~code:Responses.success
-        | None -> `String "" |> respond' ~code:Responses.failure
+    module String (Responses : Responses.String) = struct
+      let f s = `String s |> respond'
     end
   end
 
@@ -145,6 +138,13 @@ module Make = struct
   let make_not_result_response response_f content_lwt =
     let%lwt content = content_lwt in
     response_f content
+
+  module No_content (Responses : Responses.No_content) = struct
+    module M = Make_response.No_content (Responses)
+
+    let f ?error_responder content_result_lwt =
+      make_result_response M.f ?error_responder content_result_lwt
+  end
 
   module Json (Responses : Responses.Json) = struct
     module M = Make_response.Json (Responses)
@@ -167,47 +167,29 @@ module Make = struct
       make_result_response M.f ?error_responder content_result_lwt
   end
 
-  module Raw = struct
-    module Json (Responses : Responses.Raw_json) = struct
-      module M = Make_response.Raw_json (Responses)
+  module Empty = struct
+    module Code = struct
+      module Only (Responses : Responses.Empty.Code) = struct
+        module M = Make_response.Empty.Code.Only (Responses)
+
+        let f ?error_responder content_result_lwt =
+          make_result_response M.f ?error_responder content_result_lwt
+      end
+
+      module Headers (Responses : Responses.Empty.Code.Headers) = struct
+        module M = Make_response.Empty.Code.Headers (Responses)
+
+        let f ?error_responder content_result_lwt =
+          make_result_response M.f ?error_responder content_result_lwt
+      end
+    end
+
+    module Bool (Responses : Responses.Empty.Bool) = struct
+      module M = Make_response.Empty.Bool (Responses)
 
       let f ?error_responder content_result_lwt =
         make_result_response M.f ?error_responder content_result_lwt
     end
-
-    module Json_opt = struct
-      module Not_found (Responses : Responses.Raw_json) = struct
-        module M = Make_response.Raw_json_opt (Responses)
-
-        let f ?error_responder content_result_lwt =
-          make_result_response
-            (M.f ~code:`Not_found)
-            ?error_responder content_result_lwt
-      end
-
-      module Unauthorized (Responses : Responses.Raw_json) = struct
-        module M = Make_response.Raw_json_opt (Responses)
-
-        let f ?error_responder content_result_lwt =
-          make_result_response
-            (M.f ~code:`Unauthorized)
-            ?error_responder content_result_lwt
-      end
-    end
-  end
-
-  module Empty_code (Responses : Responses.Empty_code) = struct
-    module M = Make_response.Empty_code (Responses)
-
-    let f ?error_responder content_result_lwt =
-      make_result_response M.f ?error_responder content_result_lwt
-  end
-
-  module Empty_code_headers (Responses : Responses.Empty_code_headers) = struct
-    module M = Make_response.Empty_code_headers (Responses)
-
-    let f ?error_responder content_result_lwt =
-      make_result_response M.f ?error_responder content_result_lwt
   end
 
   module Created = struct
@@ -218,20 +200,6 @@ module Make = struct
       let f ?error_responder content_result_lwt =
         make_result_response M.f ?error_responder content_result_lwt
     end
-  end
-
-  module No_content (Responses : Responses.No_content) = struct
-    module M = Make_response.No_content (Responses)
-
-    let f ?error_responder content_result_lwt =
-      make_result_response M.f ?error_responder content_result_lwt
-  end
-
-  module Empty_opt (Responses : Responses.Empty_opt) = struct
-    module M = Make_response.Empty_opt (Responses)
-
-    let f ?error_responder content_result_lwt =
-      make_result_response M.f ?error_responder content_result_lwt
   end
 
   module Not_result = struct
@@ -259,15 +227,15 @@ module Make = struct
       let f = make_not_result_response M.f
     end
 
-    module Empty_code (Responses : Responses.Empty_code) = struct
-      module M = Make_response.Empty_code (Responses)
+    module Empty_code (Responses : Responses.Empty.Code) = struct
+      module M = Make_response.Empty.Code.Only (Responses)
 
       let f = make_not_result_response M.f
     end
 
-    module Empty_code_headers (Responses : Responses.Empty_code_headers) =
+    module Empty_code_headers (Responses : Responses.Empty.Code.Headers) =
     struct
-      module M = Make_response.Empty_code_headers (Responses)
+      module M = Make_response.Empty.Code.Headers (Responses)
 
       let f = make_not_result_response M.f
     end
@@ -293,8 +261,8 @@ module Make = struct
       let f = make_not_result_response M.f
     end
 
-    module Empty_opt (Responses : Responses.Empty_opt) = struct
-      module M = Make_response.Empty_opt (Responses)
+    module Empty_opt (Responses : Responses.Empty.Bool) = struct
+      module M = Make_response.Empty.Bool (Responses)
 
       let f = make_not_result_response M.f
     end

@@ -14,44 +14,42 @@ let get_jwt req ~algorithm =
   | None -> failwith "No JWT token"
 
 module Make = struct
-  module Json (Parameters : Parameters.Json) = struct
-    let f req =
-      (* TODO catch Yojson.Json_error here (and maybe more?) *)
-      let%lwt json = App.json_of_body_exn req in
-      match json |> Parameters.t_of_yojson' with
-      | Ok x -> x |> Lwt.return
-      | Error _ -> failwith "Error parsing JSON"
-  end
-
-  module Json_jwt (Parameters : Parameters.Jwt_json) = struct
-    let f ~algorithm req =
-      let%lwt json = App.json_of_body_exn req in
-      let j =
-        match json |> Parameters.parameters_of_yojson' with
-        | Ok x -> x
-        | Error _ -> failwith "Error decoding JSON"
-      in
-      let jwt =
-        let token_opt = Auth.get_token req in
-        let open Option in
-        match
-          token_opt >>| fun token ->
-          Jwt_utils.verify_and_decode ~algorithm token
-        with
-        | Some (Payload p) -> p
-        | Some SignatureMismatch -> failwith "Signature mismatch"
-        | Some FormatError -> failwith "Format error"
-        | None -> failwith "No JWT token"
-      in
-      (j, jwt) |> Lwt.return
-  end
-
-  module Jwt (Parameters : Parameters.Jwt) = struct
-    let f ~algorithm req = get_jwt ~algorithm req |> Lwt.return
-  end
-
   module None (Parameters : Parameters.None) = struct
     let f _req = () |> Lwt.return
+  end
+
+  module Json = struct
+    module Only (Parameters : Parameters.Json) = struct
+      let f req =
+        (* TODO catch Yojson.Json_error here (and maybe more?) *)
+        let%lwt json = App.json_of_body_exn req in
+        match json |> Parameters.t_of_yojson' with
+        | Ok x -> x |> Lwt.return
+        | Error _ -> failwith "Error parsing JSON"
+    end
+
+    module Jwt (Parameters : Parameters.Json.Jwt) = struct
+      let f ~algorithm req =
+        let%lwt json = App.json_of_body_exn req in
+        let j =
+          match json |> Parameters.parameters_of_yojson' with
+          | Ok x -> x
+          | Error _ -> failwith "Error decoding JSON"
+        in
+        let jwt =
+          let token_opt = Auth.get_token req in
+          let open Option in
+          match
+            token_opt >>| fun token ->
+            Jwt_utils.verify_and_decode ~algorithm token
+          with
+          | Some (Payload p) -> p
+          | Some SignatureMismatch -> failwith "Signature mismatch"
+          | Some FormatError -> failwith "Format error"
+          | None -> failwith "No JWT token"
+        in
+        (j, jwt) |> Lwt.return
+    end
   end
 
   module Path = struct
@@ -66,15 +64,16 @@ module Make = struct
       in
       name
 
-    module One (Parameters : Parameters.Path.One) (S : Specification.S) = struct
-      let name = get_one_param_name (module S)
+    module One = struct
+      module Only (Parameters : Parameters.Path.One) (S : Specification.S) =
+      struct
+        let name = get_one_param_name (module S)
 
-      let f req = Parameters.of_string (param req name) |> Lwt.return
-    end
+        let f req = Parameters.of_string (param req name) |> Lwt.return
+      end
 
-    module One_and = struct
       module Query
-          (Parameters : Parameters.Path.One_and.Query)
+          (Parameters : Parameters.Path.One.Query)
           (S : Specification.S) =
       struct
         let name = get_one_param_name (module S)
@@ -90,19 +89,21 @@ module Make = struct
           in
           (path_parameter_value, query_parameter_values) |> Lwt.return
       end
+
+      module Jwt (Parameters : Parameters.Path.One.Jwt) (S : Specification.S) =
+      struct
+        let name = get_one_param_name (module S)
+
+        let f ~algorithm req =
+          let jwt = get_jwt ~algorithm req in
+          let param_value = Parameters.of_string (param req name) in
+          (param_value, jwt) |> Lwt.return
+      end
     end
   end
 
-  module Path_one_jwt
-      (Parameters : Parameters.Jwt_path_one)
-      (S : Specification.S) =
-  struct
-    let name = Path.get_one_param_name (module S)
-
-    let f ~algorithm req =
-      let jwt = get_jwt ~algorithm req in
-      let param_value = Parameters.of_string (param req name) in
-      (param_value, jwt) |> Lwt.return
+  module Jwt (Parameters : Parameters.Jwt) = struct
+    let f ~algorithm req = get_jwt ~algorithm req |> Lwt.return
   end
 
   module Custom (Parameters : Parameters.Custom) = struct
