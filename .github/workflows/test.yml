@@ -1,4 +1,4 @@
-ame: Build
+name: Build
 on: [push]
 jobs:
   run:
@@ -18,7 +18,9 @@ jobs:
         path: ~/.opam
         key: ${{ runner.os }}-${{ matrix.ocaml-version }}-${{ hashFiles('ocoi.opam') }}
 
-    - uses: avsm/setup-ocaml@master
+    - Name: Setup OCaml
+      if: steps.cache-opam.outputs.cache-hit != 'true'
+      uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
 
