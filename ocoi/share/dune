@@ -21,4 +21,3 @@
 (section share)
 (package ocoi)
 )
-(data_only *)

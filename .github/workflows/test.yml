@@ -1,0 +1,20 @@
+name: Build
+on: [push]
+jobs:
+  run:
+    name: Build
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [macos-latest, ubuntu-latest]
+        ocaml-version: ['4.09.0', '4.07.0']
+    steps:
+    - uses: actions/checkout@master
+    - uses: avsm/setup-ocaml@master
+      with:
+        ocaml-version: ${{ matrix.ocaml-version }}
+    - run: opam pin add quests.dev --no-action .
+    - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt quests
+    - run: OPAMSOLVERTIMEOUT=3600 opam install -t . --deps-only
+    - run: opam exec -- dune build
+    - run: opam exec -- dune runtest
