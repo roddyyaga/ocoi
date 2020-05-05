@@ -11,20 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - name: Cache opam
-      id: cache-opam
-      uses: actions/cache@v1
-      with:
-        path: ~/.opam
-        key: ${{ runner.os }}-${{ matrix.ocaml-version }}-${{ hashFiles('ocoi.opam') }}
-
     - name: Setup OCaml
-      if: steps.cache-opam.outputs.cache-hit != 'true'
       uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
 
-    - run: which opam
     - run: opam pin add ocoi --no-action .
     - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt ocoi
     - run: OPAMSOLVERTIMEOUT=3600 opam install -t . --deps-only
