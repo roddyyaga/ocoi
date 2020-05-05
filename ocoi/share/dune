@@ -21,4 +21,4 @@
 (section share)
 (package ocoi)
 )
-(data_only_dirs .)
+(data_only *)
