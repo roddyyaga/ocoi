@@ -96,7 +96,7 @@ let restart_on_change ~server ~watchtool_output ~freq =
     match%lwt Lwt_io.read_line_opt ic with
     | Some _ -> (
         let current_time = Unix.time () in
-        match current_time >= restart_time with
+        match Float.(current_time >= restart_time) with
         | true ->
             let () =
               print_endline "\nChange detected, rebuilding and restarting"

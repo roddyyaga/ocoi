@@ -74,8 +74,8 @@ let get_type_names name pld_type =
 (* TODO - handle forbidden SQL column names *)
 
 (** Produce a resource_attribute from a relevant bit of AST. *)
-let make_resource_attribute ~name ~type_name ~rapper_name ~sql_type_name  =
-    { name; type_name; sql_name = name; rapper_name; sql_type_name }
+let make_resource_attribute ~name ~type_name ~rapper_name ~sql_type_name =
+  { name; type_name; sql_name = name; rapper_name; sql_type_name }
 
 let process_label_decl ({ pld_name; pld_type; _ } : label_declaration) =
   let name = pld_name.txt in
@@ -93,11 +93,11 @@ let ocaml_parameters_string resource_attributes =
 
 (** Filter the resource_attribute representing ID from a list. *)
 let without_id resource_attributes =
-  List.filter resource_attributes ~f:(fun a -> a.name <> "id")
+  List.filter resource_attributes ~f:(fun a -> String.(a.name <> "id"))
 
 (** Get the resource_attribute representing ID from a list. *)
 let get_id_attribute resource_attributes =
-  List.find_exn resource_attributes ~f:(fun a -> a.name = "id")
+  List.find_exn resource_attributes ~f:(fun a -> String.(a.name = "id"))
 
 (** Given a list of resource attibutes, return a string "record_name1, record_name2, ..."
    * or "record_name1; record_name2; ...". *)
