@@ -1,9 +1,13 @@
-let handle_caqti_result result =
-  match%lwt result with
-  | Ok data -> Lwt.return data
-  | Error err -> failwith (Caqti_error.show err)
+let make_pool uri =
+  match Caqti_lwt.connect_pool @@ Uri.of_string uri with
+  | Ok pool -> pool
+  | Error _ -> failwith "Error creating DB connection pool"
 
-let get_connection uri =
-  let uri = Uri.of_string uri in
-  let db_connection_future = Caqti_lwt.connect uri in
-  handle_caqti_result db_connection_future
+let transaction query connection =
+  let (module C : Caqti_lwt.CONNECTION) = connection in
+  let open Lwt_result.Infix in
+  C.start () >>= fun () ->
+  Lwt.bind (query connection) (function
+    | Ok query_result -> C.commit () >>= fun () -> Ok query_result |> Lwt.return
+    | Error query_error ->
+        C.rollback () >>= fun () -> Lwt_result.fail query_error)

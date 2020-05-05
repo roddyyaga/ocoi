@@ -28,7 +28,6 @@ ppx_jane
 jwt
 base64
 ppxlib
-str
 )
 )
 
