@@ -13,7 +13,6 @@ jobs:
     - uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
-    - run: ls -aR /
     - run: which opam
     - run: opam pin add ocoi ppx_ocoi --no-action .
     - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt ocoi ppx_ocoi
