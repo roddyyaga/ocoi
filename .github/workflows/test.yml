@@ -13,8 +13,10 @@ jobs:
     - uses: avsm/setup-ocaml@master
       with:
         ocaml-version: ${{ matrix.ocaml-version }}
-    - run: opam pin add quests.dev --no-action .
-    - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt quests
+    - run: ls -aR /
+    - run: which opam
+    - run: opam pin add ocoi ppx_ocoi --no-action .
+    - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt ocoi ppx_ocoi
     - run: OPAMSOLVERTIMEOUT=3600 opam install -t . --deps-only
     - run: opam exec -- dune build
     - run: opam exec -- dune runtest
