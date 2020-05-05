@@ -18,7 +18,7 @@ jobs:
         path: ~/.opam
         key: ${{ runner.os }}-${{ matrix.ocaml-version }}-${{ hashFiles('ocoi.opam') }}
 
-    - Name: Setup OCaml
+    - name: Setup OCaml
       if: steps.cache-opam.outputs.cache-hit != 'true'
       uses: avsm/setup-ocaml@master
       with:
