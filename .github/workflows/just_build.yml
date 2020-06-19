@@ -1,14 +1,14 @@
-name: "Build and test"
+name: "Just build"
 on: [push]
 jobs:
   run:
-    name: "Build and test"
+    name: Build
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
       matrix:
         operating-system: [ubuntu-latest]
-        ocaml-version: ['4.10.0']
+        ocaml-version: ['4.08.1', '4.09.1']
     steps:
     - uses: actions/checkout@master
 
@@ -19,6 +19,5 @@ jobs:
 
     - run: opam pin add ocoi --no-action .
     - run: OPAMSOLVERTIMEOUT=3600 opam depext -yt ocoi
-    - run: OPAMSOLVERTIMEOUT=3600 opam install -t . --deps-only --locked
+    - run: OPAMSOLVERTIMEOUT=3600 opam install -t . --deps-only
     - run: opam exec -- dune build
-    - run: opam exec -- dune runtest
