@@ -25,7 +25,7 @@
   dune
   core
   lwt
-  (opium_core
+  (opium_kernel
    (= "master"))
   (opium
    (= "master"))
@@ -45,4 +45,4 @@
 (package
  (name ppx_ocoi)
  (synopsis "PPXs for OCaml On Ice")
- (depends dune ppxlib))
+ (depends dune ppxlib ppx_optcomp))
