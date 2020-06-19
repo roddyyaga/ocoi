@@ -76,23 +76,23 @@ module type Crud = sig
   module Controller : sig
     val create :
       Api.Create.Parameters.t ->
-      (int, [> Caqti_error.call_or_retrieve ]) result Lwt.t
+      (int, 'a) result Lwt.t
 
     val index :
       unit ->
-      (Api.Index.Responses.t list, [> Caqti_error.call_or_retrieve ]) result
+      (Api.Index.Responses.t list, 'a) result
       Lwt.t
 
     val show :
       int ->
-      (Api.Show.Responses.t option, [> Caqti_error.call_or_retrieve ]) result
+      (Api.Show.Responses.t option, 'a) result
       Lwt.t
 
     val update :
       Api.Update.Parameters.t ->
-      (unit, [> Caqti_error.call_or_retrieve ]) result Lwt.t
+      (unit, 'a) result Lwt.t
 
-    val destroy : int -> (unit, [> Caqti_error.call_or_retrieve ]) result Lwt.t
+    val destroy : int -> (unit, 'a) result Lwt.t
   end
 end
 

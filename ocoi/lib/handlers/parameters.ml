@@ -55,14 +55,10 @@ module Make = struct
   module Path = struct
     let get_one_param_name (module S : Specification.S) =
       let () = assert (String.count ~f:(Char.( = ) ':') S.path = 1) in
-
-      let name =
-        (* Find the only occurrence of [:some_var] in the path *)
-        let pattern = Str.regexp {re|.*:\([^/]*\)\(/\|$\)|re} in
-        let () = assert (Str.string_match pattern S.path 0) in
-        Str.matched_group 1 S.path
-      in
-      name
+      (* Find the only occurrence of [:some_var] in the path *)
+      let pattern = Str.regexp {re|.*:\([^/]*\)\(/\|$\)|re} in
+      let () = assert (Str.string_match pattern S.path 0) in
+      Str.matched_group 1 S.path
 
     module One = struct
       module Only (Parameters : Parameters.Path.One) (S : Specification.S) =

@@ -22,8 +22,9 @@ module type Json = sig
 end
 
 (** {!module-type:Json_list}, {!module-type:Json_opt} and {!module-type:Json_code} are aliases for {!module-type:Json},
- * and the functors with these names don't do anything. But they should still be used for endpoints will be used with
- * {!Ocoi_handlers__.Responses.Make.Json_list} and similar for documentation purposes and to enable (currently hypothetical) *)
+   and the functors with these names don't do anything. But they should still be used for endpoints will be used with
+   {!Ocoi_handlers__.Responses.Make.Json_list} and similar for documentation purposes and to enable use of specifications
+   by frontend code. *)
 module type Json_list = Json
 
 module type Json_opt = Json
@@ -36,7 +37,8 @@ module Json_opt (Some_json : Json) : Json with type t = Some_json.t
 
 module Json_code (Some_json : Json) : Json with type t = Some_json.t
 
-(* For endpoints with implementations that return a piece of JSON directly ({!module-type:Json} is for endpoints with implementations that return something such as a record that can be encoded as JSON) *)
+(* For endpoints with implementations that return a piece of JSON directly ({!module-type:Json} is for endpoints
+   with implementations that return something such as a record that can be encoded as JSON) *)
 module Raw_json : sig
   type t = Yojson.Safe.t
 

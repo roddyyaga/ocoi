@@ -1,7 +1,7 @@
 (executables
-(names ocoi)
-(public_names ocoi)
-(libraries core compiler-libs.common fileutils lwt lwt.unix str)
-(preprocess (pps ppx_let lwt_ppx ppxlib.metaquot))
-(package ocoi)
-)
+ (names ocoi)
+ (public_names ocoi)
+ (libraries core compiler-libs.common fileutils lwt lwt.unix str)
+ (preprocess
+  (pps ppx_let lwt_ppx ppxlib.metaquot))
+ (package ocoi))

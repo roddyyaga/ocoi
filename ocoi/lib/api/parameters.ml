@@ -12,15 +12,14 @@ end
 module type Json = sig
   type t
 
-  val t_of_yojson' : Yojson.Safe.t -> t Ppx_yojson_conv_lib.Yojson_conv.Result.t
+  val t_of_yojson' : Yojson.Safe.t -> (t, string) Result.t
 end
 
 module Json = struct
   module type Jwt = sig
     type parameters
 
-    val parameters_of_yojson' :
-      Yojson.Safe.t -> parameters Ppx_yojson_conv_lib.Yojson_conv.Result.t
+    val parameters_of_yojson' : Yojson.Safe.t -> (parameters, string) Result.t
 
     type t = parameters * Jwt.payload
   end

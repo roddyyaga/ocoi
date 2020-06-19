@@ -7,4 +7,5 @@ val default_logger : Rock.Middleware.t
 (** The default logger
 
     For each request, this logs two info messages, for example
-    {v GET "/path/to/resource" Responded with 404 Not Found v} *)
+    {v GET "/path/to/resource"
+       Responded with 404 Not Found v} *)

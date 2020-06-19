@@ -14,7 +14,7 @@ end
 module type Json = sig
   type t
 
-  val t_of_yojson' : Yojson.Safe.t -> t Ppx_yojson_conv_lib.Yojson_conv.Result.t
+  val t_of_yojson' : Yojson.Safe.t -> (t, string) result
 end
 
 (** For endpoints that take a piece of JSON and some other data *)
@@ -23,8 +23,7 @@ module Json : sig
   module type Jwt = sig
     type parameters
 
-    val parameters_of_yojson' :
-      Yojson.Safe.t -> parameters Ppx_yojson_conv_lib.Yojson_conv.Result.t
+    val parameters_of_yojson' : Yojson.Safe.t -> (parameters, string) result
 
     type t = parameters * Jwt.payload
   end
