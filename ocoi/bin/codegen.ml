@@ -104,10 +104,20 @@ let get_id_attribute resource_attributes =
 let record_names_string resource_attributes sep =
   String.concat ~sep (List.map resource_attributes ~f:(fun a -> a.name))
 
+[%%if ocaml_version >= (4, 08, 0)]
+
+(** Load an AST tree from a filename. *)
+let load_tree ~model_path =
+  Pparse.parse_implementation ~tool_name:"ocamlc" model_path
+
+[%%else]
+
 (** Load an AST tree from a filename. *)
 let load_tree ~model_path =
   Pparse.parse_implementation Format.std_formatter ~tool_name:"ocamlc"
     model_path
+
+[%%endif]
 
 (** [module_name_and dir "path/to/model.ml"] returns [("model", "path/to")] *)
 let module_name_and_dir ~model_path =

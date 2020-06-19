@@ -4,8 +4,8 @@
 
 open Base
 
+type status_code = Httpaf.Status.t
 (** Represents an HTTP status code *)
-type status_code = Cohttp.Code.status_code
 
 (** For endpoints that return an empty response with a [204 No content] code *)
 module type No_content = sig
@@ -21,11 +21,11 @@ module type Json = sig
   val yojson_of_t : t -> Yojson.Safe.t
 end
 
+module type Json_list = Json
 (** {!module-type:Json_list}, {!module-type:Json_opt} and {!module-type:Json_code} are aliases for {!module-type:Json},
    and the functors with these names don't do anything. But they should still be used for endpoints will be used with
    {!Ocoi_handlers__.Responses.Make.Json_list} and similar for documentation purposes and to enable use of specifications
    by frontend code. *)
-module type Json_list = Json
 
 module type Json_opt = Json
 
@@ -65,7 +65,7 @@ module Empty : sig
 
     (** For endpoints that return an empty response with a certain status code and set of headers *)
     module type Headers = sig
-      type t = status_code * (string * string) sexp_list
+      type t = status_code * (string * string) list
     end
 
     module Headers : Headers

@@ -80,7 +80,7 @@ module Make = struct
           in
           let query_parameter_values =
             List.map
-              ~f:(Uri.get_query_param (Request.uri req))
+              ~f:(Uri.get_query_param (Uri.of_string req.Request.target))
               Parameters.query_fields
           in
           (path_parameter_value, query_parameter_values) |> Lwt.return

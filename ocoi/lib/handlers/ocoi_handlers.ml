@@ -1,5 +1,5 @@
-open Opium.Std
 open Ocoi_api.Specification
+open Utils
 
 module Make = struct
   module Parameters = Parameters.Make
@@ -16,7 +16,7 @@ let handler (module S : Ocoi_api.Specification.S) input_f impl_f output_f =
       let msg = Printexc.to_string e and stack = Printexc.get_backtrace () in
       Logs.err (fun m -> m "Uncaught exception: %s\n%s" msg stack);
       `String "An error occurred, check server logs for details"
-      |> respond' ~code:`Internal_server_error
+      |> respond ~status:`Internal_server_error
   in
   route S.path handler
 
@@ -74,23 +74,13 @@ module type Crud = sig
   end
 
   module Controller : sig
-    val create :
-      Api.Create.Parameters.t ->
-      (int, 'a) result Lwt.t
+    val create : Api.Create.Parameters.t -> (int, 'a) result Lwt.t
 
-    val index :
-      unit ->
-      (Api.Index.Responses.t list, 'a) result
-      Lwt.t
+    val index : unit -> (Api.Index.Responses.t list, 'a) result Lwt.t
 
-    val show :
-      int ->
-      (Api.Show.Responses.t option, 'a) result
-      Lwt.t
+    val show : int -> (Api.Show.Responses.t option, 'a) result Lwt.t
 
-    val update :
-      Api.Update.Parameters.t ->
-      (unit, 'a) result Lwt.t
+    val update : Api.Update.Parameters.t -> (unit, 'a) result Lwt.t
 
     val destroy : int -> (unit, 'a) result Lwt.t
   end

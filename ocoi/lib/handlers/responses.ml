@@ -1,13 +1,14 @@
 open Opium.Std
 open Base
 open Ocoi_api
+open Utils
 
 module Make = struct
   let caqti_error_responder error =
     let error_message = error |> Caqti_error.show in
     Logs.err (fun m -> m "%s" error_message);
     `String "See server logs for error details"
-    |> respond' ~code:`Internal_server_error
+    |> respond ~status:`Internal_server_error
 
   let query_error_message (error : Caqti_error.query_error) =
     let open Caqti_error in
@@ -22,10 +23,10 @@ module Make = struct
       String.is_prefix ~prefix:"duplicate key value violates unique constraint"
         trimmed
     with
-    | true -> `String "" |> respond' ~code:`Conflict
+    | true -> `String "" |> respond ~status:`Conflict
     | false ->
         `String "See server logs for error details"
-        |> respond' ~code:`Internal_server_error
+        |> respond ~status:`Internal_server_error
 
   let caqti_error_responder_duplicate_409 error =
     Logs.err (fun m -> m "%s" (Caqti_error.show error));
@@ -35,7 +36,7 @@ module Make = struct
         handle_request_failed msg_string
     | _ ->
         `String "See server logs for error details"
-        |> respond' ~code:`Internal_server_error
+        |> respond ~status:`Internal_server_error
 
   let get_default_error_responder provided_responder =
     Option.value provided_responder ~default:caqti_error_responder_duplicate_409
@@ -50,25 +51,25 @@ module Make = struct
     end
 
     module No_content (Responses : Responses.No_content) = struct
-      let f () = `String "" |> respond' ~code:`No_content
+      let f () = `String "" |> respond ~status:`No_content
     end
 
     module Json (Responses : Responses.Json) = struct
-      let f content = `Json (content |> Responses.yojson_of_t) |> respond'
+      let f content = `Json (content |> Responses.yojson_of_t) |> respond
     end
 
     module Json_opt (Responses : Responses.Json_opt) = struct
       let f content_opt =
         match content_opt with
-        | Some content -> `Json (content |> Responses.yojson_of_t) |> respond'
-        | None -> `String "" |> respond' ~code:`Not_found
+        | Some content -> `Json (content |> Responses.yojson_of_t) |> respond
+        | None -> `String "" |> respond ~status:`Not_found
     end
 
     module Json_list (Responses : Responses.Json_list) = struct
       let f content =
         let list_of_json = List.map content ~f:Responses.yojson_of_t in
         let json_of_list = `List list_of_json in
-        `Json json_of_list |> respond'
+        `Json json_of_list |> respond
     end
 
     module Json_code (Responses : Responses.Json_code) = struct
@@ -79,12 +80,12 @@ module Make = struct
               (code_string, content_json)
           | _ -> failwith "yo!"
         in
-        let code =
+        let status =
           match String.chop_prefix ~prefix:"_" code_string with
-          | Some number -> number |> Int.of_string |> Cohttp.Code.status_of_code
+          | Some number -> number |> Int.of_string |> Httpaf.Status.of_code
           | None -> failwith "yo!"
         in
-        `Json content_json |> respond' ~code
+        `Json content_json |> respond ~status
     end
 
     module Created = struct
@@ -93,35 +94,35 @@ module Make = struct
         let f id =
           let location = Printf.sprintf "%s/%d" S.path id in
           `String ""
-          |> respond'
-               ~headers:(Cohttp.Header.of_list [ ("Location", location) ])
-               ~code:`Created
+          |> respond
+               ~headers:(Httpaf.Headers.of_list [ ("Location", location) ])
+               ~status:`Created
       end
     end
 
     module Empty = struct
       module Code = struct
         module Only (Responses : Responses.Empty.Code) = struct
-          let f code = `String "" |> respond' ~code
+          let f status = `String "" |> respond ~status
         end
 
         module Headers (Responses : Responses.Empty.Code.Headers) = struct
-          let f (code, headers) =
+          let f (status, headers) =
             `String ""
-            |> respond' ~headers:(Cohttp.Header.of_list headers) ~code
+            |> respond ~headers:(Httpaf.Headers.of_list headers) ~status
         end
       end
 
       module Bool (Responses : Responses.Empty.Bool) = struct
         let f unit_opt =
           match unit_opt with
-          | true -> `String "" |> respond' ~code:Responses.success
-          | false -> `String "" |> respond' ~code:Responses.failure
+          | true -> `String "" |> respond ~status:Responses.success
+          | false -> `String "" |> respond ~status:Responses.failure
       end
     end
 
     module String (Responses : Responses.String) = struct
-      let f s = `String s |> respond'
+      let f s = `String s |> respond
     end
   end
 

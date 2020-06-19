@@ -26,6 +26,7 @@ depends: [
   "jwt"
   "base64"
   "ppxlib"
+  "ppx_optcomp"
 ]
 build: [
   ["dune" "subst"] {pinned}

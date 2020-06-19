@@ -3,5 +3,5 @@
  (public_names ocoi)
  (libraries core compiler-libs.common fileutils lwt lwt.unix str)
  (preprocess
-  (pps ppx_let lwt_ppx ppxlib.metaquot))
+  (pps ppx_optcomp ppx_let lwt_ppx ppxlib.metaquot))
  (package ocoi))

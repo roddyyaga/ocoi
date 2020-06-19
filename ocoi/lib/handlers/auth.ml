@@ -1,20 +1,21 @@
 open Base
 open Opium.Std
+open Utils
 
-type auth_credential = [ Cohttp.Auth.credential | `Bearer of string ]
+type auth_credential = [ `Bearer of string | `Other of string ]
 
 (** Helper to parse "Authorization: Bearer <credentials>" headers *)
 let get_authorization header =
-  let cohttp_parsed = Cohttp.Header.get_authorization header in
+  let cohttp_parsed = Httpaf.Headers.get header "Authorization" in
   match cohttp_parsed with
-  | Some (`Other content) -> (
+  | Some content -> (
       match String.lsplit2 ~on:' ' content with
       | Some (type_, credentials) -> (
           match type_ with
           | "Bearer" -> Some (`Bearer credentials)
           | _ -> Some (`Other content) )
       | None -> Some (`Other content) )
-  | other -> (other :> auth_credential option)
+  | None -> None
 
 let get_bearer_token auth_value =
   match auth_value with Some (`Bearer t) -> Some t | _ -> None
@@ -23,14 +24,14 @@ let get_token ?auth_getter req =
   let getter =
     match auth_getter with Some f -> f | None -> get_bearer_token
   in
-  req |> Request.headers |> get_authorization |> getter
+  req.Request.headers |> get_authorization |> getter
 
 let authenticate ~check handler =
   let authenticated req =
-    let auth_header = req |> Request.headers |> get_authorization in
+    let auth_header = req.Request.headers |> get_authorization in
     match check auth_header req with
     | true -> handler req
-    | false -> `String "" |> respond' ~code:`Unauthorized
+    | false -> `String "" |> respond ~status:`Unauthorized
     (* TODO - determine whether 401 or 403 should be returned by default.*)
     (* TODO - possibly enable both 401 and 403 responses *)
   in
