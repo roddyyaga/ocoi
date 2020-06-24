@@ -3,21 +3,29 @@ open Base
 open Ocoi_api
 open Utils
 
-module Make = struct
-  let caqti_error_responder error =
-    let error_message = error |> Caqti_error.show in
-    Logs.err (fun m -> m "%s" error_message);
-    `String "See server logs for error details"
-    |> respond ~status:`Internal_server_error
+let caqti_error_responder error =
+  let error_message = error |> Caqti_error.show in
+  Logs.err (fun m -> m "%s" error_message);
+  `String "See server logs for error details"
+  |> respond ~status:`Internal_server_error
 
-  let query_error_message (error : Caqti_error.query_error) =
-    let open Caqti_error in
-    pp_msg Caml.Format.str_formatter error.msg;
-    Caml.Format.flush_str_formatter ()
+let caqti_query_error_message (error : Caqti_error.query_error) =
+  let open Caqti_error in
+  pp_msg Caml.Format.str_formatter error.msg;
+  Caml.Format.flush_str_formatter ()
 
-  let handle_request_failed msg_string =
+module Error_responders = struct
+  let generic_error_log_message =
+    "Unknown (non-Caqti) error occurred. You should probably use a different \
+     error responder that will handle this case properly."
+
+  let prod_error_message_to_client = `String "See server logs for error details"
+
+  let caqti_error_handle_409_on_duplicate caqti_msg_string =
     let trimmed =
-      msg_string |> String.chop_prefix_exn ~prefix:"ERROR:" |> String.lstrip
+      caqti_msg_string
+      |> String.chop_prefix_exn ~prefix:"ERROR:"
+      |> String.lstrip
     in
     match
       String.is_prefix ~prefix:"duplicate key value violates unique constraint"
@@ -25,22 +33,43 @@ module Make = struct
     with
     | true -> `String "" |> respond ~status:`Conflict
     | false ->
-        `String "See server logs for error details"
-        |> respond ~status:`Internal_server_error
+        prod_error_message_to_client |> respond ~status:`Internal_server_error
 
-  let caqti_error_responder_duplicate_409 error =
-    Logs.err (fun m -> m "%s" (Caqti_error.show error));
+  let basic _error =
+    Logs.err (fun m -> m "%s" generic_error_log_message);
+    prod_error_message_to_client |> respond ~status:`Internal_server_error
+
+  let caqti_general error =
     match error with
-    | `Request_failed err ->
-        let msg_string = query_error_message err in
-        handle_request_failed msg_string
-    | _ ->
-        `String "See server logs for error details"
-        |> respond ~status:`Internal_server_error
+    | #Caqti_error.t as caqti_error ->
+        Logs.err (fun m -> m "%s" (Caqti_error.show caqti_error));
+        prod_error_message_to_client |> respond ~status:`Internal_server_error
+    | _other_error ->
+        Logs.err (fun m -> m "%s" generic_error_log_message);
+        prod_error_message_to_client |> respond ~status:`Internal_server_error
 
-  let get_default_error_responder provided_responder =
-    Option.value provided_responder ~default:caqti_error_responder_duplicate_409
+  let caqti_409_on_duplicate error =
+    match error with
+    | #Caqti_error.t as caqti_error -> (
+        Logs.err (fun m -> m "%s" (Caqti_error.show caqti_error));
+        match caqti_error with
+        | `Request_failed err ->
+            let msg_string = caqti_query_error_message err in
+            caqti_error_handle_409_on_duplicate msg_string
+        | _ ->
+            prod_error_message_to_client
+            |> respond ~status:`Internal_server_error )
+    | _other_error ->
+        Logs.err (fun m -> m "%s" generic_error_log_message);
+        prod_error_message_to_client |> respond ~status:`Internal_server_error
 
+  let default = caqti_409_on_duplicate
+end
+
+let get_default_error_responder provided_responder =
+  Option.value provided_responder ~default:Error_responders.default
+
+module Make = struct
   module Make_response = struct
     module type Make_sig = functor
       (Responses : sig
