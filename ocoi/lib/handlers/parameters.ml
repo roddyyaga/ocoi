@@ -23,19 +23,13 @@ module Make = struct
       let f req =
         (* TODO catch Yojson.Json_error here (and maybe more?) *)
         let%lwt json = App.json_of_body_exn req in
-        match json |> Parameters.t_of_yojson with
-        | Ok x -> x |> Lwt.return
-        | Error _ -> failwith "Error parsing JSON"
+        json |> Parameters.t_of_yojson |> Lwt.return
     end
 
     module Jwt (Parameters : Parameters.Json.Jwt) = struct
       let f ~algorithm req =
         let%lwt json = App.json_of_body_exn req in
-        let j =
-          match json |> Parameters.parameters_of_yojson with
-          | Ok x -> x
-          | Error _ -> failwith "Error decoding JSON"
-        in
+        let j = json |> Parameters.parameters_of_yojson in
         let jwt =
           let token_opt = Auth.get_token req in
           let open Option in
