@@ -6,6 +6,8 @@ module Make = struct
   module Responses = Responses.Make
 end
 
+module Error_responders = Responses.Error_responders
+
 let handler (module S : Ocoi_api.Specification.S) input_f impl_f output_f =
   let route = verb_to_route S.verb in
   let handler req =
