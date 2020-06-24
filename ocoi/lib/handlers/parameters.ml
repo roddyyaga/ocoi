@@ -23,7 +23,7 @@ module Make = struct
       let f req =
         (* TODO catch Yojson.Json_error here (and maybe more?) *)
         let%lwt json = App.json_of_body_exn req in
-        match json |> Parameters.t_of_yojson' with
+        match json |> Parameters.t_of_yojson with
         | Ok x -> x |> Lwt.return
         | Error _ -> failwith "Error parsing JSON"
     end
@@ -32,7 +32,7 @@ module Make = struct
       let f ~algorithm req =
         let%lwt json = App.json_of_body_exn req in
         let j =
-          match json |> Parameters.parameters_of_yojson' with
+          match json |> Parameters.parameters_of_yojson with
           | Ok x -> x
           | Error _ -> failwith "Error decoding JSON"
         in
