@@ -39,6 +39,7 @@
   ppx_let
   jwt
   base64
+  ocamlformat
   ppxlib
   ppx_optcomp))
 

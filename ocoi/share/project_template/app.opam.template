@@ -1,5 +1,6 @@
 pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "ocoi.master" "git+https://github.com/roddyyaga/ocoi.git"]
+    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#master" ]
+    [ "opium_kernel.master" "git+https://github.com/rgrinberg/opium.git#master" ]
+    [ "ocoi.httpaf-new-ocaml" "git+https://github.com/roddyyaga/ocoi.git#httpaf-new-ocaml"]
+    [ "ppx_ocoi.httpaf-new-ocaml" "git+https://github.com/roddyyaga/ocoi.git#httpaf-new-ocaml"]
 ]

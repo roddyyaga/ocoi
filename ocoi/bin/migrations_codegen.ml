@@ -28,7 +28,7 @@ let make_migration_or_rollback_script module_name
     (module Operation : MigrateOperations.Operation) =
   Printf.sprintf
     {ocaml|
-let result = Lwt_main.run (Queries.%s.%s Db.connection ())
+let result = Lwt_main.run (Db.execute @@ fun dbh -> Queries.%s.%s dbh ())
 
 let () =
   match result with

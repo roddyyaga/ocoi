@@ -164,6 +164,15 @@ let write_queries ~model_path ~tree ~reason =
   let migration_queries =
     make_migration_code ~table_name ~resource_attributes
   in
+
   Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries;
   Out_channel.close oc;
-  Utils.reformat queries_path ~reason
+  Utils.reformat queries_path ~reason;
+  let sql_migration_query =
+    generate_create_table_sql table_name resource_attributes
+  in
+  let ( / ) = Filename.concat in
+  let sql_migrations_dir = dir / ".." / "db" / "schema" in
+  let sql_migration_path = sql_migrations_dir / (module_name ^ ".sql") in
+  Unix.mkdir_p sql_migrations_dir;
+  Out_channel.write_all ~data:sql_migration_query sql_migration_path
