@@ -21,6 +21,10 @@ module Error_responders = struct
 
   let prod_error_message_to_client = `String "See server logs for error details"
 
+  let respond_error ?(prod = true) () =
+    ignore prod;
+    prod_error_message_to_client |> respond ~status:`Internal_server_error
+
   let caqti_error_handle_409_on_duplicate caqti_msg_string =
     let trimmed =
       caqti_msg_string
@@ -32,21 +36,20 @@ module Error_responders = struct
         trimmed
     with
     | true -> `String "" |> respond ~status:`Conflict
-    | false ->
-        prod_error_message_to_client |> respond ~status:`Internal_server_error
+    | false -> respond_error ()
 
   let basic _error =
     Logs.err (fun m -> m "%s" generic_error_log_message);
-    prod_error_message_to_client |> respond ~status:`Internal_server_error
+    respond_error ()
 
   let caqti_general error =
-    match error with
-    | #Caqti_error.t as caqti_error ->
-        Logs.err (fun m -> m "%s" (Caqti_error.show caqti_error));
-        prod_error_message_to_client |> respond ~status:`Internal_server_error
-    | _other_error ->
-        Logs.err (fun m -> m "%s" generic_error_log_message);
-        prod_error_message_to_client |> respond ~status:`Internal_server_error
+    let () =
+      match error with
+      | #Caqti_error.t as caqti_error ->
+          Logs.err (fun m -> m "%s" (Caqti_error.show caqti_error))
+      | _other_error -> Logs.err (fun m -> m "%s" generic_error_log_message)
+    in
+    respond_error ()
 
   let caqti_409_on_duplicate error =
     match error with
