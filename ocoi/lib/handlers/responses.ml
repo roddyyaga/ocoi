@@ -91,10 +91,10 @@ module Make = struct
     end
 
     module Json_opt (Responses : Responses.Json_opt) = struct
-      let f content_opt =
+      let f ?(status = `Not_found) content_opt =
         match content_opt with
         | Some content -> `Json (content |> Responses.yojson_of_t) |> respond
-        | None -> `String "" |> respond ~status:`Not_found
+        | None -> `String "" |> respond ~status
     end
 
     module Json_list (Responses : Responses.Json_list) = struct
@@ -196,8 +196,8 @@ module Make = struct
   module Json_opt (Responses : Responses.Json_opt) = struct
     module M = Make_response.Json_opt (Responses)
 
-    let f ?error_responder content_result_lwt =
-      make_result_response M.f ?error_responder content_result_lwt
+    let f ?error_responder ?status content_result_lwt =
+      make_result_response (M.f ?status) ?error_responder content_result_lwt
   end
 
   module Empty = struct
