@@ -1,7 +1,8 @@
 (executables
  (names ocoi)
  (public_names ocoi)
- (libraries core compiler-libs.common fileutils lwt lwt.unix str)
+ (libraries core compiler-libs.common fileutils lwt lwt.unix str
+   ppx_rapper.runtime)
  (preprocess
-  (pps ppx_optcomp ppx_let lwt_ppx ppxlib.metaquot))
+  (pps ppx_optcomp ppx_let lwt_ppx ppxlib.metaquot ppx_rapper))
  (package ocoi))

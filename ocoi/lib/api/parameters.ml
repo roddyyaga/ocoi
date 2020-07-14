@@ -50,6 +50,12 @@ module Path = struct
 
       type t = path * Jwt.payload
     end
+
+    module Int = struct
+      type t = int
+
+      let of_string = Int.of_string
+    end
   end
 end
 

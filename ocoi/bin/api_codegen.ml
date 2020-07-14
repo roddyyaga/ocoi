@@ -12,11 +12,7 @@ module Create = struct
 
   let path = base_path
 
-  module Parameters = struct
-    type t = Models.%s.t_no_id
-
-    let t_of_yojson' = Models.%s.t_no_id_of_yojson'
-  end
+  module Parameters = Models.%s.No_id
 
   module Responses = Responses.Created.Int
 end
@@ -57,7 +53,6 @@ module Destroy = struct
   module Responses = Responses.No_content
 end|ocaml}
     (Utils.pluralize module_name)
-    (String.capitalize module_name)
     (String.capitalize module_name)
     (String.capitalize module_name)
     (String.capitalize module_name)

@@ -3,6 +3,6 @@ module M = struct
   [@@deriving yojson, ocoi]
 end
 
-let f = M.t_no_id_of_yojson
+let f = M.No_id.t_of_yojson
 
-let g = M.yojson_of_t_no_id
+let g = M.No_id.yojson_of_t

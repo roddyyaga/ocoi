@@ -34,3 +34,26 @@ let reformat path ~reason =
   | false ->
       let _ = ocamlformat path in
       ()
+
+(** Check we are in the root project directory *)
+let check_in_root () =
+  if
+    not
+      (List.mem ~equal:String.equal
+         (Sys.ls_dir Filename.current_dir_name)
+         "app")
+  then
+    failwith
+      "This command must be run from the root project directory (the one \
+       containing `app`)."
+
+let get_app_name () =
+  check_in_root ();
+  Unix.getcwd () |> Filename.basename
+
+(** Get the index of the last element in a list satisfying a predicate *)
+let index_last xs ~f =
+  let reversed_index_opt = List.findi (List.rev xs) ~f:(fun _i x -> f x) in
+  match reversed_index_opt with
+  | Some reversed_index -> Some (List.length xs - fst reversed_index - 1)
+  | None -> None

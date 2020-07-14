@@ -90,7 +90,7 @@ let remove_ppx_ocoi_deriver ptype_attributes =
 
 [%%endif]
 
-let process_decl decl =
+let process_decl rec_flag decl =
   let fields, type_name, loc =
     match decl with
     | { ptype_name = { txt; loc }; ptype_kind = Ptype_record fields; _ } ->
@@ -100,25 +100,33 @@ let process_decl decl =
   match List.exists ~f:is_id_field fields with
   | false -> None
   | true ->
-      let new_name = type_name ^ "_no_id" in
       let new_fields =
         List.filter ~f:(fun field -> not (is_id_field field)) fields
       in
+      let desc =
+        Pstr_type
+          ( rec_flag,
+            [
+              {
+                decl with
+                ptype_kind = Ptype_record new_fields;
+                ptype_name = { txt = type_name; loc };
+                ptype_attributes = remove_ppx_ocoi_deriver decl.ptype_attributes;
+              };
+            ] )
+      in
       Some
-        {
-          decl with
-          ptype_kind = Ptype_record new_fields;
-          ptype_name = { txt = new_name; loc };
-          ptype_attributes = remove_ppx_ocoi_deriver decl.ptype_attributes;
-        }
+        [%stri
+          module No_id = struct
+            [%%i { pstr_desc = desc; pstr_loc = loc }]
+          end]
 
 let remove_id_field ptype_record_fields =
   let f field = not (is_id_field field) in
   List.filter ~f ptype_record_fields
 
-let expand_str ~loc ~path:_ (rec_flag, decls) =
-  let processed_decls = List.filter_map ~f:process_decl decls in
-  [ { pstr_desc = Pstr_type (rec_flag, processed_decls); pstr_loc = loc } ]
+let expand_str ~loc:_ ~path:_ (rec_flag, decls) =
+  List.filter_map ~f:(process_decl rec_flag) decls
 
 let str_generator = Deriving.Generator.make_noarg expand_str
 

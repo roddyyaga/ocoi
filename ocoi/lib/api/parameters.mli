@@ -60,6 +60,13 @@ module Path : sig
 
       type t = path * Jwt.payload
     end
+
+    (** For endpoints with a single integer path parameter *)
+    module Int : sig
+      type t = int
+
+      val of_string : string -> t
+    end
   end
 end
 

@@ -10,8 +10,7 @@ let generate_queries =
       in
       fun () ->
         let tree = Codegen.load_tree ~model_path in
-        Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
-        Migrations_codegen.write_migration_scripts ~model_path ~reason)
+        Db_codegen_rapper.write_queries ~model_path ~tree ~reason)
 
 let generate_controller =
   Command.basic ~summary:"Generate CRUD controller code for a model"
@@ -54,7 +53,6 @@ let generate_scaffold =
       fun () ->
         let tree = Codegen.load_tree ~model_path in
         Db_codegen_rapper.write_queries ~model_path ~tree ~reason;
-        Migrations_codegen.write_migration_scripts ~model_path ~reason;
         Controller_codegen.write_controller ~model_path ~tree ~reason;
         Api_codegen.write_api_code ~model_path ~reason;
         Handlers_codegen.add_crud ~model_path)
@@ -78,60 +76,118 @@ let new_ =
       (* TODO - sanitise name *)
       fun () ->
         let template_directory_name =
-          FilePath.concat
-            ("ocoi" |> FileUtil.which |> FilePath.dirname)
+          Filename.concat
+            ("ocoi" |> FileUtil.which |> Filename.dirname)
             "../share/ocoi/project_template"
         in
         FileUtil.cp ~recurse:true [ template_directory_name ] name;
-        let ( / ) = FilePath.concat in
-        let main_path = name / "app" / "main.ml" in
+        let ( / ) = Filename.concat in
+        Unix.mkdir_p (name / "app" / "db" / "migrate" / "up");
+        Unix.mkdir_p (name / "app" / "db" / "migrate" / "down");
+
+        let db_code =
+          Printf.sprintf
+            {ocaml|open Core
+
+let hostname =
+  match Sys.getenv "POSTGRES_HOSTNAME" with Some s -> s | None -> "localhost"
+
+let pool =
+  Ocoi.Db.make_pool
+    (Printf.sprintf "postgresql://%s@%%s:5432/%s" hostname)
+
+        let execute query = Caqti_lwt.Pool.use query pool|ocaml}
+            name name
+        in
         let db_path = name / "app" / "db" / "db.ml" in
+        Out_channel.write_all db_path ~data:db_code;
+
+        let main_path = name / "app" / "main.ml" in
         let hello_api = name / "app" / "api" / "hello.ml" in
         let hello_controller = name / "app" / "controllers" / "hello.ml" in
         (* Do not reformat handlers.ml:
          * that can't use Reason syntax with the current hacky way of updating it *)
         List.iter ~f:(Utils.reformat ~reason)
-          [ main_path; db_path; hello_api; hello_controller ])
+          [ main_path; db_path; hello_api; hello_controller ];
+        Stdio.print_endline "Creating project database and user";
+        Db.setup_database name)
+
+let db_setup =
+  Command.basic ~summary:"Setup database for project"
+    ~readme:(fun () ->
+      "This should be called from the root project directory (the one \
+       containing `app`). The database is setup automatically when you run \
+       `ocoi new` - this command is for situations such as after checking out \
+       a project from version control.")
+    (Command.Param.return (fun () ->
+         let name = Utils.get_app_name () in
+         Db.setup_database name))
 
 let migrate =
-  Command.basic ~summary:"Run DB migrations for a model"
+  Command.basic ~summary:"Run DB migrations"
     ~readme:(fun () ->
-      "This should be called from the root project directory (the one \
-       containing `app`). It just builds and runs the relevant file in \
-       `app/db/migrate`.")
+      {|This should be called from the root project directory (the one containing `app`).
+
+With no timestamp, will execute all migrations that haven't been run.
+With a timestamp (in the same %Y%m%dT%H%M%SZ format as migration filenames), will make or rollback migrations until the database is in the state just after running all migrations with that timestamp.
+      |})
     Command.Let_syntax.(
-      let%map_open name = anon ("model" %: Filename.arg_type) in
-      (* TODO - check if file exists *)
+      let%map_open target_version =
+        flag "-version" (optional string)
+          ~doc:
+            {|target version to migrate to (default most recent). Should be a timestamp of the same form as the migration files.|}
+      in
       fun () ->
-        let _ =
-          Sys.command
-            (Printf.sprintf "dune exec -- ./app/db/migrate/%s_migrate.exe" name)
+        let app_name = Utils.get_app_name () in
+        let migrations = Migrations.(get_migrations () |> check) in
+        let target =
+          match target_version with
+          | Some version -> (
+              match
+                Utils.index_last migrations
+                  ~f:(String.is_prefix ~prefix:version)
+              with
+              | Some i -> i + 1
+              | None ->
+                  Printf.failwithf "No migration has timestamp '%s'" version ()
+              )
+          | None -> 1 + List.length migrations
         in
-        ())
+        Migrations.do_migration app_name migrations target)
 
 let rollback =
-  Command.basic ~summary:"Run DB rollback for a model"
-    ~readme:(fun () ->
-      "This should be called from the root project directory (the one \
-       containing `app`). It just builds and runs the relevant file in \
-       `app/db/migrate`.")
+  Command.basic ~summary:"Undo some migrations"
+    ~readme:(fun () -> "Rollback some number of migrations (default 1).")
     Command.Let_syntax.(
-      let%map_open name = anon ("model" %: Filename.arg_type) in
-      (* TODO - check if file exists *)
+      let%map_open steps = anon (maybe ("steps" %: int)) in
       fun () ->
-        let _ =
-          Sys.command
-            (Printf.sprintf "dune exec -- ./app/db/migrate/%s_rollback.exe"
-               name)
-        in
-        ())
+        let app_name = Utils.get_app_name () in
+        let migrations = Migrations.(get_migrations () |> check) in
+        let steps = Option.value steps ~default:1 in
+        Migrations.do_rollback app_name migrations steps)
+
+let rollforward =
+  Command.basic ~summary:"Apply a number of migrations"
+    ~readme:(fun () -> "Apply some number of migrations (default 1).")
+    Command.Let_syntax.(
+      let%map_open steps = anon (maybe ("steps" %: int)) in
+      fun () ->
+        let app_name = Utils.get_app_name () in
+        let migrations = Migrations.(get_migrations () |> check) in
+        let steps = Option.value steps ~default:1 in
+        Migrations.do_rollback app_name migrations (-steps))
 
 let db =
-  Command.group ~summary:"Run DB migrations or rollbacks"
-    [ ("migrate", migrate); ("rollback", rollback) ]
+  Command.group ~summary:"Set up the database and run migrations."
+    [
+      ("setup", db_setup);
+      ("migrate", migrate);
+      ("rollback", rollback);
+      ("rollforward", rollforward);
+    ]
 
 let server =
-  Command.basic ~summary:"Run an OCOI app, rebuilding when files are changed"
+  Command.basic ~summary:"Run an ocoi app, rebuilding when files are changed"
     ~readme:(fun () ->
       "This should be called from the root project directory (the one \
        containing `app`). It uses `main.ml` as an entry point. It is \
@@ -175,7 +231,7 @@ let server =
            (Server.restart_on_change ~server ~watchtool_output ~freq:2.0)))
 
 let command =
-  Command.group ~summary:"Run OCOI commands"
+  Command.group ~summary:"Run ocoi commands"
     [ ("generate", generate); ("new", new_); ("server", server); ("db", db) ]
 
 let () = Command.run command

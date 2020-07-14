@@ -5,17 +5,17 @@ let make_controller_code module_name resource_attributes =
   Printf.sprintf
     {ocaml|open Models.%s
 
-let create { %s }=
-  Queries.%s.create Db.connection %s
+let create { No_id.%s }=
+  Db.execute @@ Queries.%s.create %s
 
-let index () = Queries.%s.all Db.connection ()
+let index () = Db.execute @@ Queries.%s.all ()
 
-let show id = Queries.%s.show Db.connection id
+let show id = Db.execute @@ Queries.%s.show id
 
 let update { %s }=
-  Queries.%s.update Db.connection { %s }
+  Db.execute @@ Queries.%s.update { %s }
 
-let destroy id = Queries.%s.destroy Db.connection id|ocaml}
+let destroy id = Db.execute @@ Queries.%s.destroy id|ocaml}
     (String.capitalize module_name)
     (record_names_string (without_id resource_attributes) "; ")
     (String.capitalize module_name)
