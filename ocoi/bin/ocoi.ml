@@ -151,7 +151,7 @@ With a timestamp (in the same %Y%m%dT%H%M%SZ format as migration filenames), wil
               | None ->
                   Printf.failwithf "No migration has timestamp '%s'" version ()
               )
-          | None -> 1 + List.length migrations
+          | None -> List.length migrations
         in
         Migrations.do_migration app_name migrations target)
 
@@ -177,13 +177,31 @@ let rollforward =
         let steps = Option.value steps ~default:1 in
         Migrations.do_rollback app_name migrations (-steps))
 
+let db_status =
+  Command.basic ~summary:"View the last migration applied to the database"
+    (Command.Param.return (fun () ->
+         let app_name = Utils.get_app_name () in
+         Migrations.status ~app_name ()))
+
+let db_history =
+  Command.basic ~summary:"View a history of migrations that have been applied"
+    Command.Let_syntax.(
+      let%map_open length = anon (maybe ("length" %: int)) in
+      fun () ->
+        let length = Option.value length ~default:1 in
+        let app_name = Utils.get_app_name () in
+        Migrations.history ~app_name length)
+
 let db =
-  Command.group ~summary:"Set up the database and run migrations."
+  Command.group
+    ~summary:"Set up the database, run migrations, view applied migrations."
     [
       ("setup", db_setup);
       ("migrate", migrate);
       ("rollback", rollback);
       ("rollforward", rollforward);
+      ("status", db_status);
+      ("history", db_history);
     ]
 
 let server =

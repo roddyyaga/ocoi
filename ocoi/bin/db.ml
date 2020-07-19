@@ -12,7 +12,7 @@ let setup_database name =
   let _create_schema_migrations_table =
     Unix.system
       (Printf.sprintf
-         {|psql -U %s -c "CREATE DATABASE schema_migrations (id SERIAL PRIMARY KEY, migration VARCHAR NOT NULL, up BOOL NOT NULL)"|}
+         {|psql -U %s -c "CREATE DATABASE schema_migrations (id SERIAL PRIMARY KEY, migration VARCHAR NOT NULL, up BOOL NOT NULL, applied TIMESTAMP NOT NULL)"|}
          name)
   in
   ()
