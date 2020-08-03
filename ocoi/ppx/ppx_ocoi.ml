@@ -11,7 +11,7 @@ let is_ocoi_deriver exp =
       match s with "ocoi" -> true | _ -> false )
   | _ -> false
 
-[%%if ocaml_version >= (4, 07, 0) && ocaml_version <> (4, 09, 1)]
+[%%if ocaml_version >= (4, 07, 0)]
 
 let remove_ppx_ocoi_deriver ptype_attributes =
   let f { attr_name; attr_payload; attr_loc } =

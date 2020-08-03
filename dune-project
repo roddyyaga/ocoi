@@ -47,4 +47,8 @@
 (package
  (name ppx_ocoi)
  (synopsis "PPXs for OCaml On Ice")
- (depends dune ppxlib ppx_optcomp))
+ (depends
+  dune
+  (ppxlib
+   (>= "0.13"))
+  ppx_optcomp))
