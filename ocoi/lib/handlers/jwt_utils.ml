@@ -6,7 +6,7 @@ type verify_decode_result =
   | FormatError
 
 let make_token ~algorithm claims =
-  let header = Jwt.header_of_algorithm_and_typ algorithm "JWT" in
+  let header = Jwt.header_of_algorithm_and_typ algorithm (Some "JWT") in
   let payload =
     let open Jwt in
     List.fold ~init:empty_payload
@@ -24,7 +24,7 @@ let b64_url_encode str = B64.encode ~pad:true ~alphabet:B64.default_alphabet str
 
 let verify ~algorithm token =
   let given_signature = token |> Jwt.signature_of_t |> b64_url_encode in
-  let jwt_header = Jwt.header_of_algorithm_and_typ algorithm "JWT" in
+  let jwt_header = Jwt.header_of_algorithm_and_typ algorithm (Some "JWT") in
   let given_payload = token |> Jwt.payload_of_t in
   let recomputed_token = Jwt.t_of_header_and_payload jwt_header given_payload in
   let recomputed_signature =
