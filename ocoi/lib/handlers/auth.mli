@@ -24,10 +24,10 @@
 
 open Opium.Std
 
-type auth_credential = [ Cohttp.Auth.credential | `Bearer of string ]
+type auth_credential = [ `Bearer of string | `Other of string ]
 (** Extends Cohttp authorization header types with Bearer *)
 
-val get_authorization : Cohttp.Header.t -> auth_credential option
+val get_authorization : Httpaf.Headers.t -> auth_credential option
 (** Get the [auth_credential] from a header. *)
 
 val get_token :

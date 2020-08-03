@@ -14,7 +14,7 @@ end
 module type Json = sig
   type t
 
-  val t_of_yojson' : Yojson.Safe.t -> (t, string) result
+  val t_of_yojson : Yojson.Safe.t -> t
 end
 
 (** For endpoints that take a piece of JSON and some other data *)
@@ -23,7 +23,7 @@ module Json : sig
   module type Jwt = sig
     type parameters
 
-    val parameters_of_yojson' : Yojson.Safe.t -> (parameters, string) result
+    val parameters_of_yojson : Yojson.Safe.t -> parameters
 
     type t = parameters * Jwt.payload
   end
@@ -59,6 +59,13 @@ module Path : sig
       val of_string : string -> path
 
       type t = path * Jwt.payload
+    end
+
+    (** For endpoints with a single integer path parameter *)
+    module Int : sig
+      type t = int
+
+      val of_string : string -> t
     end
   end
 end

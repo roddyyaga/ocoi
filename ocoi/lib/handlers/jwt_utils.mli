@@ -30,7 +30,7 @@ val make_token : algorithm:Jwt.algorithm -> (string * string) list -> Jwt.t
     tuples using some algorithm. *)
 
 val make_and_encode :
-  algorithm:Jwt.algorithm -> (string * string) sexp_list -> string
+  algorithm:Jwt.algorithm -> (string * string) list -> string
 (** [make_and_encode ~algorithm claims] calls [make_token ~algorithm claims] and encodes the result as a base64 string. *)
 
 val get_claim : string -> Jwt.payload -> string option

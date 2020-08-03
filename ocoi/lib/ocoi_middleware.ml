@@ -2,8 +2,8 @@ open Core
 open Lwt.Infix
 open Opium.Std
 
-let add_cors_headers ?origin ?methods (headers : Cohttp.Header.t) :
-    Cohttp.Header.t =
+let add_cors_headers ?origin ?methods (headers : Httpaf.Headers.t) :
+    Httpaf.Headers.t =
   let vary_header =
     match origin with Some _ -> [ ("vary", "Origin") ] | None -> []
   in
@@ -21,13 +21,14 @@ let add_cors_headers ?origin ?methods (headers : Cohttp.Header.t) :
     ]
     @ vary_header
   in
-  Cohttp.Header.add_list headers new_headers
+  Httpaf.Headers.add_list headers new_headers
 
 let allow_cors ?origin ?methods () =
   let filter handler req =
     handler req >|= fun response ->
-    response |> Response.headers
-    |> add_cors_headers ?origin ?methods
-    |> Field.fset Response.Fields.headers response
+    let new_headers =
+      response.Response.headers |> add_cors_headers ?origin ?methods
+    in
+    { response with Response.headers = new_headers }
   in
   Rock.Middleware.create ~name:"Ice CORS enabler" ~filter

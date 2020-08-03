@@ -12,14 +12,14 @@ end
 module type Json = sig
   type t
 
-  val t_of_yojson' : Yojson.Safe.t -> (t, string) Result.t
+  val t_of_yojson : Yojson.Safe.t -> t
 end
 
 module Json = struct
   module type Jwt = sig
     type parameters
 
-    val parameters_of_yojson' : Yojson.Safe.t -> (parameters, string) Result.t
+    val parameters_of_yojson : Yojson.Safe.t -> parameters
 
     type t = parameters * Jwt.payload
   end
@@ -49,6 +49,12 @@ module Path = struct
       val of_string : string -> path
 
       type t = path * Jwt.payload
+    end
+
+    module Int = struct
+      type t = int
+
+      let of_string = Int.of_string
     end
   end
 end

@@ -13,7 +13,7 @@ let column_tuple_string resource_attributes =
   joined_names
 
 (** Generate the code to create the table for a resource. *)
-let generate_create_table_sql table_name resource_attributes =
+let table_create_sql table_name resource_attributes =
   let column_definitions =
     List.map resource_attributes ~f:(fun a ->
         a.sql_name ^ " " ^ a.sql_type_name)
@@ -24,9 +24,12 @@ let generate_create_table_sql table_name resource_attributes =
         )|} table_name
     (Utils.indent body ~filler:' ' ~amount:10)
 
+let table_drop_sql table_name = Printf.sprintf {|DROP TABLE %s|} table_name
+
 (** Generate migrations code. *)
 let make_migration_code ~table_name ~resource_attributes =
-  let query = generate_create_table_sql table_name resource_attributes in
+  let create_query = table_create_sql table_name resource_attributes in
+  let drop_query = table_drop_sql table_name in
   Printf.sprintf
     {ocaml|let migrate =
   [%%rapper
@@ -38,9 +41,9 @@ let make_migration_code ~table_name ~resource_attributes =
 let rollback =
     [%%rapper
       execute
-        {sql| DROP TABLE %s |sql}]
+        {sql| %s |sql}]
 |ocaml}
-    query table_name
+    create_query drop_query
 
 type rapper_parameter = Input | Output
 
@@ -78,7 +81,7 @@ let make_all_code ~table_name ~resource_attributes =
 (** Generate model code for getting a resource instance by ID. *)
 let make_show_code ~table_name ~resource_attributes =
   Printf.sprintf
-    {ocaml|let show dbh id =
+    {ocaml|let show id =
   [%%rapper
     get_opt
       {sql|
@@ -86,7 +89,7 @@ let make_show_code ~table_name ~resource_attributes =
       FROM %s
       WHERE id = %%int{id}
       |sql} record_out]
-  dbh ~id
+  ~id
 |ocaml}
     (rapper_parameters Output resource_attributes)
     table_name
@@ -128,11 +131,11 @@ let make_update_code ~table_name ~resource_attributes =
 (** Generate model code for destroying a resource instance. *)
 let make_destroy_code ~table_name =
   Printf.sprintf
-    {ocaml|let destroy dbh id =
+    {ocaml|let destroy id =
   [%%rapper
     execute
       {sql| DELETE FROM %s WHERE id = %%int{id} |sql}]
-  dbh ~id
+  ~id
 |ocaml}
     table_name
 
@@ -164,6 +167,14 @@ let write_queries ~model_path ~tree ~reason =
   let migration_queries =
     make_migration_code ~table_name ~resource_attributes
   in
+
   Printf.fprintf oc "%s\n%s\n" crud_queries migration_queries;
   Out_channel.close oc;
-  Utils.reformat queries_path ~reason
+  Utils.reformat queries_path ~reason;
+
+  let up_sql = table_create_sql table_name resource_attributes in
+  let down_sql = table_drop_sql table_name in
+  let ( / ) = Filename.concat in
+  let migrations_dir = dir / ".." / "db" / "migrate" in
+  let name = String.lowercase module_name in
+  Migrations_codegen.create ~up_sql ~down_sql ~name ~migrations_dir

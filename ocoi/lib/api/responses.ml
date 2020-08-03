@@ -1,6 +1,6 @@
 open Base
 
-type status_code = Cohttp.Code.status_code
+type status_code = Httpaf.Status.t
 
 module type No_content = sig
   type t = unit

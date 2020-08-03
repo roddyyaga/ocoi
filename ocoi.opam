@@ -13,7 +13,7 @@ depends: [
   "dune"
   "core"
   "lwt"
-  "opium_core" {= "master"}
+  "opium_kernel" {= "master"}
   "opium" {= "master"}
   "caqti"
   "caqti-lwt"
@@ -25,7 +25,10 @@ depends: [
   "ppx_let"
   "jwt"
   "base64"
+  "ocamlformat"
+  "ppx_rapper"
   "ppxlib"
+  "ppx_optcomp"
 ]
 build: [
   ["dune" "subst"] {pinned}
@@ -43,6 +46,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/roddyyaga/ocoi.git"
 pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
-    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git#experiment-with-splitting-modules" ]
+    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#master" ]
+    [ "opium_kernel.master" "git+https://github.com/rgrinberg/opium.git#master" ]
 ]
