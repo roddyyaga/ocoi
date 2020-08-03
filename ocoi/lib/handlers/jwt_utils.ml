@@ -20,7 +20,9 @@ let make_and_encode ~algorithm claims =
   make_token ~algorithm claims |> Jwt.token_of_t
 
 (** Copied from ocaml-jwt and updated for new version of base64 *)
-let b64_url_encode str = B64.encode ~pad:true ~alphabet:B64.default_alphabet str
+let b64_url_encode str =
+  Option.value_exn
+    (Base64.encode ~pad:true ~alphabet:Base64.default_alphabet str |> Result.ok)
 
 let verify ~algorithm token =
   let given_signature = token |> Jwt.signature_of_t |> b64_url_encode in
