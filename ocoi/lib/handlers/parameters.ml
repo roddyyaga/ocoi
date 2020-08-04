@@ -114,7 +114,8 @@ module Make = struct
   end
 
   module Jwt (Parameters : Parameters.Jwt) = struct
-    let f ~algorithm req = get_jwt ~algorithm req |> Lwt.return
+    let f ?(require_expiry = true) ~algorithm req =
+      get_jwt ~require_expiry ~algorithm req |> Lwt.return
   end
 
   module Custom (Parameters : Parameters.Custom) = struct
