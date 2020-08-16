@@ -22,7 +22,6 @@
  (synopsis
    "OCaml On Ice - a backend web framework in the style of Ruby On Rails")
  (depends
-  dune
   core
   lwt
   (opium_kernel
@@ -48,7 +47,6 @@
  (name ppx_ocoi)
  (synopsis "PPXs for OCaml On Ice")
  (depends
-  dune
   (ppxlib
    (>= "0.13"))
   ppx_optcomp))

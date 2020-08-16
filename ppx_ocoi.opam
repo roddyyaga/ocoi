@@ -9,7 +9,7 @@ homepage: "https://github.com/roddyyaga/ocoi"
 doc: "https://roddyyaga.github.io/ocoi"
 bug-reports: "https://github.com/roddyyaga/ocoi/issues"
 depends: [
-  "dune"
+  "dune" {>= "2.0"}
   "ppxlib" {>= "0.13"}
   "ppx_optcomp"
 ]

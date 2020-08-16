@@ -10,7 +10,7 @@ homepage: "https://github.com/roddyyaga/ocoi"
 doc: "https://roddyyaga.github.io/ocoi"
 bug-reports: "https://github.com/roddyyaga/ocoi/issues"
 depends: [
-  "dune"
+  "dune" {>= "2.0"}
   "core"
   "lwt"
   "opium_kernel" {= "master"}
