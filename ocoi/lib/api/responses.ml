@@ -76,3 +76,19 @@ module Raw_json = struct
 
   let yojson_of_t = Fn.id
 end
+
+module Jingoo = struct
+  module type Raw = sig
+    type t
+
+    val jingoo_of_t : t -> (string * Jingoo.Jg_types.tvalue) list
+
+    val template : string
+  end
+
+  module type Json = sig
+    include Json
+
+    val template : string
+  end
+end

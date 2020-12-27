@@ -82,5 +82,5 @@ module Jwt : Jwt
 module type Custom = sig
   type t
 
-  val f : Opium.Std.Request.t -> t
+  val f : Opium.Request.t -> t
 end

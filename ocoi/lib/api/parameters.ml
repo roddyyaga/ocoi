@@ -1,5 +1,5 @@
 open Base
-open Opium.Std
+open Opium
 
 module type None = sig
   type t = unit

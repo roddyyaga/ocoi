@@ -80,4 +80,39 @@ module Make = struct
   module String (Responses : Responses.String) = struct
     let f s = `String s |> respond
   end
+
+  module Template = struct
+    module Raw (Responses : Responses.Jingoo.Raw) = struct
+      let f ~loader t =
+        let template = loader Responses.template in
+        let models = Responses.jingoo_of_t t in
+        let rendered = Jingoo.Jg_template.Loaded.eval ~models template in
+        `String rendered |> respond
+    end
+
+    module Json (Responses : Responses.Jingoo.Json) = struct
+      let f ?(name = "object") ~loader t =
+        let template = loader Responses.template in
+        let value =
+          t |> Responses.yojson_of_t |> Utils.jingoo_value_of_yojson
+        in
+        let rendered =
+          Jingoo.Jg_template.Loaded.eval ~models:[ (name, value) ] template
+        in
+        `String rendered |> respond
+    end
+
+    module Json_list (Responses : Responses.Jingoo.Json) = struct
+      let f ?(name = "object_list") ~loader ts =
+        let template = loader Responses.template in
+        let value =
+          Utils.jingoo_value_of_yojson
+            (`List (List.map ts ~f:Responses.yojson_of_t))
+        in
+        let rendered =
+          Jingoo.Jg_template.Loaded.eval ~models:[ (name, value) ] template
+        in
+        `String rendered |> respond
+    end
+  end
 end

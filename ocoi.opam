@@ -13,8 +13,7 @@ depends: [
   "dune" {>= "2.0"}
   "core"
   "lwt"
-  "opium_kernel" {= "master"}
-  "opium" {= "master"}
+  "opium" {>= "0.19.0"}
   "caqti"
   "caqti-lwt"
   "caqti-driver-postgresql"
@@ -23,12 +22,12 @@ depends: [
   "ppx_yojson_conv"
   "ppx_yojson"
   "ppx_let"
-  "jwt"
+  "jwt" {= "master"}
+  "nocrypto" {= "master"}
   "base64"
   "ocamlformat"
   "ppx_rapper"
-  "ppxlib"
-  "ppx_optcomp"
+  "jingoo"
 ]
 build: [
   ["dune" "subst"] {pinned}
@@ -46,6 +45,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/roddyyaga/ocoi.git"
 pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git#master" ]
-    [ "opium_kernel.master" "git+https://github.com/rgrinberg/opium.git#master" ]
+    [ "jwt.master" "git+https://github.com/besport/ocaml-jwt.git"]
+    [ "nocrypto.master" "git+https://github.com/mirleft/ocaml-nocrypto.git"]
 ]

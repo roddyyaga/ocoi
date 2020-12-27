@@ -1,10 +1,9 @@
-(** Defines an alternative to [Opium.Std.App.empty] that already has some middleware applied *)
+(** Defines an alternative to [Opium.Std.App.empty] with some default middleware applied *)
 
 open Base
-open Opium.Std
 
-val base : App.t
-(** [App.empty] with the default Ice logger middleware applied *)
+val base : Opium.App.t
+(** [App.empty] with the default Opium logger middleware applied *)
 
 val register : Opium.App.builder list -> Opium.App.t -> Opium.App.t
 (** Apply a list of handlers to an app *)

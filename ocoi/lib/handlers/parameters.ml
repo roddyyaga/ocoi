@@ -1,5 +1,4 @@
 open Core
-open Opium.Std
 open Ocoi_api
 
 type jwt_error =
@@ -48,14 +47,14 @@ module Make = struct
     module Only (Parameters : Parameters.Json) = struct
       let f req =
         try_with_json_error (fun () ->
-            let%lwt json = App.json_of_body_exn req in
+            let%lwt json = Opium.Request.to_json_exn req in
             Ok (Parameters.t_of_yojson json) |> Lwt.return)
     end
 
     module Jwt (Parameters : Parameters.Json.Jwt) = struct
       let f ?(require_expiry = true) ~algorithm req =
         try_with_json_error (fun () ->
-            let%lwt json = App.json_of_body_exn req in
+            let%lwt json = Opium.Request.to_json_exn req in
             let caml_of_json = json |> Parameters.parameters_of_yojson in
             let jwt_result = get_jwt ~require_expiry req ~algorithm in
             match jwt_result with
@@ -77,7 +76,9 @@ module Make = struct
       struct
         let name = get_one_param_name (module S)
 
-        let f req = Parameters.of_string (param req name) |> Lwt_result.return
+        let f req =
+          Parameters.of_string (Opium.Router.param req name)
+          |> Lwt_result.return
       end
 
       module Query
@@ -88,11 +89,11 @@ module Make = struct
 
         let f req =
           let path_parameter_value =
-            Parameters.path_of_string (param req name)
+            Parameters.path_of_string (Opium.Router.param req name)
           in
           let query_parameter_values =
             List.map
-              ~f:(Uri.get_query_param (Uri.of_string req.Request.target))
+              ~f:(Uri.get_query_param (Uri.of_string req.target))
               Parameters.query_fields
           in
           (path_parameter_value, query_parameter_values) |> Lwt_result.return
@@ -106,7 +107,9 @@ module Make = struct
           let jwt_result = get_jwt ~require_expiry ~algorithm req in
           match jwt_result with
           | Ok jwt ->
-              let param_value = Parameters.of_string (param req name) in
+              let param_value =
+                Parameters.of_string (Opium.Router.param req name)
+              in
               (param_value, jwt) |> Lwt_result.return
           | Error _ as error -> error |> Lwt.return
       end

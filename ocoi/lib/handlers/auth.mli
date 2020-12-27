@@ -22,7 +22,7 @@
 
 *)
 
-open Opium.Std
+open Opium
 
 type auth_credential = [ `Bearer of string | `Other of string ]
 (** Extends Cohttp authorization header types with Bearer *)

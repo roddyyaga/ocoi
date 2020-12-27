@@ -1,9 +1,13 @@
-open Opium.Std
+open Opium
 
 type verb = Get | Post | Put | Delete
 
 let verb_to_route verb =
-  match verb with Get -> get | Post -> post | Put -> put | Delete -> delete
+  match verb with
+  | Get -> App.get
+  | Post -> App.post
+  | Put -> App.put
+  | Delete -> App.delete
 
 module type S = sig
   val verb : verb

@@ -1,5 +1,4 @@
 open Base
-open Opium.Std
 open Utils
 
 type auth_credential = [ `Bearer of string | `Other of string ]
@@ -20,15 +19,15 @@ let get_authorization header =
 let get_bearer_token auth_value =
   match auth_value with Some (`Bearer t) -> Some t | _ -> None
 
-let get_token ?auth_getter req =
+let get_token ?auth_getter (req : Opium.Request.t) =
   let getter =
     match auth_getter with Some f -> f | None -> get_bearer_token
   in
-  req.Request.headers |> get_authorization |> getter
+  req.headers |> get_authorization |> getter
 
 let authenticate ~check handler =
-  let authenticated req =
-    let auth_header = req.Request.headers |> get_authorization in
+  let authenticated (req : Opium.Request.t) =
+    let auth_header = req.headers |> get_authorization in
     match check auth_header req with
     | true -> handler req
     | false -> `String "" |> respond ~status:`Unauthorized

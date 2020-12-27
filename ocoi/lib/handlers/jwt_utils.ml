@@ -5,6 +5,8 @@ type verify_decode_result =
   | SignatureMismatch
   | FormatError
 
+let _ = Jwt.header_of_algorithm_and_typ
+
 let make_token ~algorithm claims =
   let header = Jwt.header_of_algorithm_and_typ algorithm (Some "JWT") in
   let payload =

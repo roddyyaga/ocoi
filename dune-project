@@ -24,10 +24,8 @@
  (depends
   core
   lwt
-  (opium_kernel
-   (= "master"))
   (opium
-   (= "master"))
+   (>= "0.19.0"))
   caqti
   caqti-lwt
   caqti-driver-postgresql
@@ -36,12 +34,14 @@
   ppx_yojson_conv
   ppx_yojson
   ppx_let
-  jwt
+  (jwt
+   (= "master"))
+  (nocrypto
+   (= "master"))
   base64
   ocamlformat
   ppx_rapper
-  ppxlib
-  ppx_optcomp))
+  jingoo))
 
 (package
  (name ppx_ocoi)
