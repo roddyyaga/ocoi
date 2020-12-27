@@ -8,29 +8,24 @@ type json_error = [ `Parsing of string | `Conversion of exn * Yojson.Safe.t ]
 
 type error = [ `Jwt of jwt_error | `Json of json_error ]
 
-let get_jwt ?(require_expiry = true) req ~algorithm =
+let get_jwt ?(require_expiry = true) req ~jwk =
   let token_opt = Auth.get_token req in
   let ( let* ) = Result.( >>= ) in
   let* payload =
     match
-      Option.(
-        token_opt >>| fun token -> Jwt_utils.verify_and_decode ~algorithm token)
+      Option.(token_opt >>| fun token -> Jwt_utils.verify_and_decode ~jwk token)
     with
-    | Some (Payload p) -> Ok p
-    | Some SignatureMismatch -> Error (`Jwt `Signature_mismatch)
-    | Some FormatError -> Error (`Jwt `Format_error)
+    | Some (Ok p) -> Ok p
+    | Some (Error e) -> Error (`Jwt e)
     | None -> Error (`Jwt `Absent)
   in
   if not require_expiry then Ok payload
   else
-    match Jwt_utils.(get_claim (Jwt.string_of_claim Jwt.exp) payload) with
+    match Jwt_utils.(get_claim "exp" payload) with
     | None -> Error (`Jwt `No_expiry)
-    | Some expiry ->
-        let* timestamp =
-          try Ok (Int.of_string expiry) with _ -> Error (`Jwt `No_expiry)
-        in
-        if Float.(of_int timestamp < Unix.time ()) then Ok payload
-        else Error (`Jwt `Expired)
+    | Some _expiry -> Ok payload
+
+(* Expiry time already checked by Jose *)
 
 let try_with_json_error f =
   try f () with
@@ -52,11 +47,11 @@ module Make = struct
     end
 
     module Jwt (Parameters : Parameters.Json.Jwt) = struct
-      let f ?(require_expiry = true) ~algorithm req =
+      let f ?(require_expiry = true) ~jwk req =
         try_with_json_error (fun () ->
             let%lwt json = Opium.Request.to_json_exn req in
             let caml_of_json = json |> Parameters.parameters_of_yojson in
-            let jwt_result = get_jwt ~require_expiry req ~algorithm in
+            let jwt_result = get_jwt ~require_expiry req ~jwk in
             match jwt_result with
             | Ok jwt -> (caml_of_json, jwt) |> Lwt_result.return
             | Error _ as error -> error |> Lwt.return)
@@ -103,8 +98,8 @@ module Make = struct
       struct
         let name = get_one_param_name (module S)
 
-        let f ?(require_expiry = true) ~algorithm req =
-          let jwt_result = get_jwt ~require_expiry ~algorithm req in
+        let f ?(require_expiry = true) ~jwk req =
+          let jwt_result = get_jwt ~require_expiry ~jwk req in
           match jwt_result with
           | Ok jwt ->
               let param_value =
@@ -117,8 +112,8 @@ module Make = struct
   end
 
   module Jwt (Parameters : Parameters.Jwt) = struct
-    let f ?(require_expiry = true) ~algorithm req =
-      get_jwt ~require_expiry ~algorithm req |> Lwt.return
+    let f ?(require_expiry = true) ~jwk req =
+      get_jwt ~require_expiry ~jwk req |> Lwt.return
   end
 
   module Custom (Parameters : Parameters.Custom) = struct

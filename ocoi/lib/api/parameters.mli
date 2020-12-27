@@ -25,7 +25,7 @@ module Json : sig
 
     val parameters_of_yojson : Yojson.Safe.t -> parameters
 
-    type t = parameters * Jwt.payload
+    type t = parameters * Jose.Jwt.payload
   end
 end
 
@@ -58,7 +58,7 @@ module Path : sig
 
       val of_string : string -> path
 
-      type t = path * Jwt.payload
+      type t = path * Jose.Jwt.payload
     end
 
     (** For endpoints with a single integer path parameter *)
@@ -72,7 +72,7 @@ end
 
 (** For endpoints which only take a JWT *)
 module type Jwt = sig
-  type t = Jwt.payload
+  type t = Jose.Jwt.payload
 end
 
 module Jwt : Jwt

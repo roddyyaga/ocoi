@@ -60,8 +60,8 @@ module Checks : sig
   (** [bearer_only token_check] rejects all requests with an [Authorization] header not of the form [Authorization: Bearer <token>], and uses [token_check] to determine whether requests that are of that form should be allowed *)
 
   val jwt :
-    algorithm:Jwt.algorithm ->
-    validate:(Jwt.payload -> Request.t -> bool) ->
+    jwk:Jose.Jwk.priv Jose.Jwk.t ->
+    validate:(Jose.Jwt.payload -> Request.t -> bool) ->
     auth_credential option ->
     Request.t ->
     bool

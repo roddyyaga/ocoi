@@ -29,16 +29,12 @@
   caqti
   caqti-lwt
   caqti-driver-postgresql
+  jose
   fileutils
   lwt_ppx
   ppx_yojson_conv
   ppx_yojson
   ppx_let
-  (jwt
-   (= "master"))
-  (nocrypto
-   (= "master"))
-  base64
   ocamlformat
   ppx_rapper
   jingoo))

@@ -21,7 +21,7 @@ module Json = struct
 
     val parameters_of_yojson : Yojson.Safe.t -> parameters
 
-    type t = parameters * Jwt.payload
+    type t = parameters * Jose.Jwt.payload
   end
 end
 
@@ -48,7 +48,7 @@ module Path = struct
 
       val of_string : string -> path
 
-      type t = path * Jwt.payload
+      type t = path * Jose.Jwt.payload
     end
 
     module Int = struct
@@ -60,11 +60,11 @@ module Path = struct
 end
 
 module type Jwt = sig
-  type t = Jwt.payload
+  type t = Jose.Jwt.payload
 end
 
 module Jwt = struct
-  type t = Jwt.payload
+  type t = Jose.Jwt.payload
 end
 
 module type Custom = sig

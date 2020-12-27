@@ -1,6 +1,6 @@
 (library
  (name ocoi_api)
  (public_name ocoi.api)
- (libraries base opium jwt jingoo)
+ (libraries base opium jingoo jose)
  (preprocess
   (pps ppx_yojson_conv)))

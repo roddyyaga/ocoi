@@ -1,8 +1,7 @@
 (library
-(name ocoi)
-(public_name ocoi)
-(libraries core lwt lwt.unix opium jwt base64 str
-           caqti caqti-lwt caqti-driver-postgresql
-           ocoi_api ocoi_handlers)
-(preprocess (pps lwt_ppx ppx_yojson_conv ppx_yojson))
-)
+ (name ocoi)
+ (public_name ocoi)
+ (libraries core lwt lwt.unix opium base64 str caqti caqti-lwt
+   caqti-driver-postgresql ocoi_api ocoi_handlers jose)
+ (preprocess
+  (pps lwt_ppx ppx_yojson_conv ppx_yojson)))

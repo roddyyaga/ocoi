@@ -49,13 +49,12 @@ module Checks = struct
     in
     checker
 
-  let jwt ~algorithm ~validate =
+  let jwt ~jwk ~validate =
     let token_check token req =
-      let verified = Jwt_utils.verify_and_decode ~algorithm token in
+      let verified = Jwt_utils.verify_and_decode ~jwk token in
       match verified with
-      | Jwt_utils.Payload payload -> validate payload req
-      | Jwt_utils.SignatureMismatch -> false
-      | Jwt_utils.FormatError -> false
+      | Ok payload -> validate payload req
+      | Error _ -> false
     in
     bearer_only token_check
 end
