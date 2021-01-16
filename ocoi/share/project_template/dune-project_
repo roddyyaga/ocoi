@@ -1,4 +1,4 @@
-(lang dune 1.11)
+(lang dune 2.7)
 
 (name app)
 
@@ -9,23 +9,7 @@
  (synopsis "An OCaml On Ice app")
  (depends
   dune
-  core
-  lwt
-  caqti
-  caqti-lwt
-  caqti-driver-postgresql
-  yojson
-  ppx_yojson_conv
-  lwt_ppx
-  logs
-  logs.fmt
-  jwt
-  base64
-  (opium_kernel
-   (= "master"))
-  (opium
-   (= "master"))
   (ppx_ocoi
-   (= "httpaf-new-ocaml"))
+   (= "master"))
   (ocoi
-   (= "httpaf-new-ocaml"))))
+   (= "master"))))

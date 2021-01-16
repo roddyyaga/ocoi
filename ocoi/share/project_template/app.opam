@@ -2,21 +2,13 @@
 opam-version: "2.0"
 synopsis: "An OCaml On Ice app"
 depends: [
-  "dune"
-  "core"
-  "lwt"
-  "caqti"
-  "caqti-lwt"
-  "caqti-driver-postgresql"
-  "yojson"
-  "ppx_deriving_yojson"
-  "lwt_ppx"
-  "opium_core" {= "master"}
-  "opium" {= "master"}
-  "ocoi"
+  "dune" {>= "2.7"}
+  "ppx_ocoi" {= "master"}
+  "ocoi" {= "master"}
+  "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
@@ -30,7 +22,6 @@ build: [
   ]
 ]
 pin-depends: [
-    [ "opium.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "opium_core.master" "git+https://github.com/rgrinberg/opium.git" ]
-    [ "ocoi.master" "git+https://github.com/roddyyaga/ocoi.git"]
+    [ "ocoi.master" "git+https://github.com/roddyyaga/ocoi.git#master"]
+    [ "ppx_ocoi.master" "git+https://github.com/roddyyaga/ocoi.git#master"]
 ]
