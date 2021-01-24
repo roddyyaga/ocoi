@@ -1,5 +1,4 @@
-open Base
-open Opium.Std
+open Opium
 
 let () =
   let app = Ocoi.App.base in
