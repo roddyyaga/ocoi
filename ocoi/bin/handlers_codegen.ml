@@ -29,7 +29,7 @@ let add_crud ~model_path =
   let module_name, dir = module_name_and_dir ~model_path in
   let handlers_filename =
     let ( / ) = Filename.concat in
-    dir / ".." / "handlers.ml"
+    dir / ".." / "bin" / "handlers.ml"
   in
   let current_handlers_content = In_channel.read_all handlers_filename in
   let match_pos =
