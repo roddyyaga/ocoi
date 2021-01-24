@@ -82,8 +82,8 @@ let new_ =
         in
         FileUtil.cp ~recurse:true [ template_directory_name ] name;
         let ( / ) = Filename.concat in
-        Unix.mkdir_p (name / "app" / "db" / "migrate" / "up");
-        Unix.mkdir_p (name / "app" / "db" / "migrate" / "down");
+        Unix.mkdir_p (name / "db" / "migrate" / "up");
+        Unix.mkdir_p (name / "db" / "migrate" / "down");
 
         let db_code =
           Printf.sprintf
@@ -99,12 +99,12 @@ let pool =
         let execute query = Caqti_lwt.Pool.use query pool|ocaml}
             name name
         in
-        let db_path = name / "app" / "db" / "db.ml" in
+        let db_path = name / "db" / "db.ml" in
         Out_channel.write_all db_path ~data:db_code;
 
-        let main_path = name / "app" / "main.ml" in
-        let hello_api = name / "app" / "api" / "hello.ml" in
-        let hello_controller = name / "app" / "controllers" / "hello.ml" in
+        let main_path = name / "main.ml" in
+        let hello_api = name / "api" / "hello.ml" in
+        let hello_controller = name / "controllers" / "hello.ml" in
         (* Do not reformat handlers.ml:
          * that can't use Reason syntax with the current hacky way of updating it *)
         List.iter ~f:(Utils.reformat ~reason)
@@ -115,10 +115,9 @@ let pool =
 let db_setup =
   Command.basic ~summary:"Setup database for project"
     ~readme:(fun () ->
-      "This should be called from the root project directory (the one \
-       containing `app`). The database is setup automatically when you run \
-       `ocoi new` - this command is for situations such as after checking out \
-       a project from version control.")
+      "This should be called from the root project directory. The database is \
+       setup automatically when you run `ocoi new` - this command is for \
+       situations such as after checking out a project from version control.")
     (Command.Param.return (fun () ->
          let name = Utils.get_app_name () in
          Db.setup_database name))
@@ -207,10 +206,9 @@ let db =
 let server =
   Command.basic ~summary:"Run an ocoi app, rebuilding when files are changed"
     ~readme:(fun () ->
-      "This should be called from the root project directory (the one \
-       containing `app`). It uses `main.ml` as an entry point. It is \
-       implemented by rerunning `dune exec -- ./app/main.exe` when inotifywait \
-       detects changes.")
+      "This should be called from the root project directory. It uses \
+       `main.ml` as an entry point. It is implemented by rerunning `dune exec \
+       -- ./bin/main.exe` when inotifywait detects changes.")
     (Command.Param.return (fun () ->
          let () = print_endline "Starting server" in
          let server = Server.start_server () in

@@ -37,15 +37,8 @@ let reformat path ~reason =
 
 (** Check we are in the root project directory *)
 let check_in_root () =
-  if
-    not
-      (List.mem ~equal:String.equal
-         (Sys.ls_dir Filename.current_dir_name)
-         "app")
-  then
-    failwith
-      "This command must be run from the root project directory (the one \
-       containing `app`)."
+  if not (Sys.file_exists_exn "app.opam") then
+    failwith "This command must be run from the root project directory."
 
 let get_app_name () =
   check_in_root ();

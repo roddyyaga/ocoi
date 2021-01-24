@@ -51,7 +51,7 @@ let watch_file_descr_output descr ~f ~channel_finished =
 let start_server () =
   let result =
     Unix.create_process ~prog:"dune"
-      ~args:[ "exec"; "--"; "./app/main.exe"; "-d" ]
+      ~args:[ "exec"; "--"; "./bin/main.exe"; "-d" ]
   in
   let () = print_endline "Server built and started" in
   let () =
