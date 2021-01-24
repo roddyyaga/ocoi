@@ -2,7 +2,7 @@ open Core
 
 let ( / ) = Filename.concat
 
-let base_dir = Filename.current_dir_name / "app" / "db" / "migrate"
+let base_dir = Filename.current_dir_name / "db" / "migrate"
 
 let up_dir = base_dir / "up"
 

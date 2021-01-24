@@ -125,7 +125,7 @@ let db_setup =
 let migrate =
   Command.basic ~summary:"Run DB migrations"
     ~readme:(fun () ->
-      {|This should be called from the root project directory (the one containing `app`).
+      {|This should be called from the root project directory.
 
 With no timestamp, will execute all migrations that haven't been run.
 With a timestamp (in the same %Y%m%dT%H%M%SZ format as migration filenames), will make or rollback migrations until the database is in the state just after running all migrations with that timestamp.
