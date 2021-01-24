@@ -46,3 +46,8 @@
   (ppxlib
    (>= "0.13"))
   ppx_optcomp))
+
+(package
+ (name js_ocoi)
+ (synopsis "For js_of_ocaml frontends to OCaml On Ice applications")
+ (depends js_of_ocaml ezjs_fetch))

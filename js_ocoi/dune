@@ -1,0 +1,4 @@
+(library
+ (name js_ocoi)
+ (public_name js_ocoi)
+ (libraries js_of_ocaml lwt ezjs_fetch.lwt yojson))
