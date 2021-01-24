@@ -1,8 +1,6 @@
 (executable
-(name main)
-(public_name main)
-(libraries logs logs.fmt
-           ocoi
-           models api controllers)
-(preprocess (pps lwt_ppx))
-)
+ (name main)
+ (public_name main)
+ (libraries ocoi models api controllers)
+ (preprocess
+  (pps lwt_ppx)))

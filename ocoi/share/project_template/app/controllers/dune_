@@ -1,5 +1,5 @@
 (library
-(name controllers)
-(libraries ocoi
-           models queries db)
-(preprocess (pps lwt_ppx)))
+ (name controllers)
+ (libraries ocoi models queries db)
+ (preprocess
+  (pps lwt_ppx)))

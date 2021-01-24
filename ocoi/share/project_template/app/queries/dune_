@@ -1,5 +1,5 @@
 (library
-(name queries)
-(libraries ocoi
-           models)
-(preprocess (pps ppx_rapper)))
+ (name queries)
+ (libraries ocoi models)
+ (preprocess
+  (pps ppx_rapper)))

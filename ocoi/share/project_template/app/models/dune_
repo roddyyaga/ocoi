@@ -1,3 +1,4 @@
 (library
-(name models)
-(preprocess (pps ppx_yojson_conv ppx_ocoi)))
+ (name models)
+ (preprocess
+  (pps ppx_yojson_conv ppx_ocoi)))
