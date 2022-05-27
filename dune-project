@@ -29,7 +29,8 @@
   caqti
   caqti-lwt
   caqti-driver-postgresql
-  jose
+  (jose
+    (<= "0.6.0"))
   fileutils
   lwt_ppx
   ppx_yojson_conv
