@@ -37,6 +37,7 @@
   ppx_let
   ocamlformat
   ppx_rapper
+  ppx_rapper_lwt
   jingoo))
 
 (package
